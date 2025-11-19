@@ -6,6 +6,9 @@ Flask-based API that answers questions about mutual funds using extracted data.
 
 import os
 import csv
+import json
+import uuid
+from datetime import datetime
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
@@ -23,6 +26,7 @@ CORS(app)
 # Configuration
 MODEL_NAME = "gemini-2.0-flash"
 DATA_DIR = "data"
+CHAT_HISTORY_FILE = "data/chat_history.json"
 
 # Global variables for loaded data
 knowledge_base = {
@@ -32,6 +36,8 @@ knowledge_base = {
     'basics': []
 }
 model = None
+chat_history = []  # Store chat sessions
+ratings = []  # Store conversation ratings
 
 
 def load_csv_data(filepath: str) -> list:
@@ -239,6 +245,152 @@ def search():
     return jsonify({'results': context})
 
 
+@app.route('/api/funds', methods=['GET'])
+def get_funds():
+    """Get list of all fund names in the knowledge base."""
+    fund_names = []
+    for scheme in knowledge_base['schemes']:
+        name = scheme.get('scheme_name', '')
+        category = scheme.get('category', 'N/A')
+        if name:
+            fund_names.append({
+                'name': name,
+                'category': category
+            })
+    return jsonify({'funds': fund_names, 'total': len(fund_names)})
+
+
+@app.route('/api/faqs', methods=['GET'])
+def get_faqs():
+    """Get list of FAQs with their categories."""
+    faqs_list = []
+    for faq in knowledge_base['faqs']:
+        faqs_list.append({
+            'question': faq.get('question', ''),
+            'answer': faq.get('answer', '')[:200] + '...' if len(faq.get('answer', '')) > 200 else faq.get('answer', ''),
+            'category': faq.get('category', 'General'),
+            'source': faq.get('source_file', faq.get('source', 'Knowledge Base'))
+        })
+    return jsonify({'faqs': faqs_list, 'total': len(faqs_list)})
+
+
+@app.route('/api/history', methods=['GET'])
+def get_history():
+    """Get chat history."""
+    return jsonify({'history': chat_history})
+
+
+@app.route('/api/history', methods=['POST'])
+def save_chat():
+    """Save a chat session to history."""
+    global chat_history
+    data = request.json
+
+    session = {
+        'id': str(uuid.uuid4()),
+        'title': data.get('title', 'New Chat'),
+        'messages': data.get('messages', []),
+        'timestamp': datetime.now().isoformat(),
+        'rating': data.get('rating', None)
+    }
+
+    chat_history.insert(0, session)  # Add to beginning
+
+    # Keep only last 50 sessions
+    chat_history = chat_history[:50]
+
+    # Save to file
+    try:
+        os.makedirs(os.path.dirname(CHAT_HISTORY_FILE), exist_ok=True)
+        with open(CHAT_HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(chat_history, f, indent=2)
+    except Exception as e:
+        print(f"Error saving chat history: {e}")
+
+    return jsonify({'success': True, 'session_id': session['id']})
+
+
+@app.route('/api/history/<session_id>', methods=['DELETE'])
+def delete_chat(session_id):
+    """Delete a chat session from history."""
+    global chat_history
+    chat_history = [s for s in chat_history if s['id'] != session_id]
+
+    # Save to file
+    try:
+        with open(CHAT_HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(chat_history, f, indent=2)
+    except Exception as e:
+        print(f"Error saving chat history: {e}")
+
+    return jsonify({'success': True})
+
+
+@app.route('/api/history/clear', methods=['POST'])
+def clear_history():
+    """Clear all chat history."""
+    global chat_history
+    chat_history = []
+
+    # Save to file
+    try:
+        with open(CHAT_HISTORY_FILE, 'w', encoding='utf-8') as f:
+            json.dump(chat_history, f, indent=2)
+    except Exception as e:
+        print(f"Error saving chat history: {e}")
+
+    return jsonify({'success': True})
+
+
+@app.route('/api/rate', methods=['POST'])
+def rate_conversation():
+    """Rate a conversation."""
+    global ratings
+    data = request.json
+
+    rating_entry = {
+        'id': str(uuid.uuid4()),
+        'session_id': data.get('session_id', ''),
+        'rating': data.get('rating', 0),  # 1-5 stars
+        'feedback': data.get('feedback', ''),
+        'timestamp': datetime.now().isoformat()
+    }
+
+    ratings.append(rating_entry)
+
+    # Update session rating if exists
+    for session in chat_history:
+        if session['id'] == data.get('session_id'):
+            session['rating'] = data.get('rating')
+            break
+
+    return jsonify({'success': True, 'rating_id': rating_entry['id']})
+
+
+@app.route('/api/ratings', methods=['GET'])
+def get_ratings():
+    """Get all ratings."""
+    avg_rating = sum(r['rating'] for r in ratings) / len(ratings) if ratings else 0
+    return jsonify({
+        'ratings': ratings,
+        'total': len(ratings),
+        'average': round(avg_rating, 2)
+    })
+
+
+def load_chat_history():
+    """Load chat history from file."""
+    global chat_history
+    if os.path.exists(CHAT_HISTORY_FILE):
+        try:
+            with open(CHAT_HISTORY_FILE, 'r', encoding='utf-8') as f:
+                chat_history = json.load(f)
+            print(f"  Loaded {len(chat_history)} chat sessions")
+        except Exception as e:
+            print(f"  Error loading chat history: {e}")
+            chat_history = []
+
+
 def main():
     """Main function to run the chatbot."""
     print("\n" + "="*60)
@@ -252,6 +404,9 @@ def main():
     # Initialize Gemini
     if not initialize_gemini():
         print("\nWarning: Gemini not initialized. Chatbot will have limited functionality.")
+
+    # Load chat history
+    load_chat_history()
 
     # Get port from environment variable (for Railway/Heroku deployment)
     port = int(os.environ.get('PORT', 5000))
@@ -269,6 +424,7 @@ def main():
 # Initialize on module load for serverless environments (Vercel)
 load_knowledge_base()
 initialize_gemini()
+load_chat_history()
 
 if __name__ == '__main__':
     main()

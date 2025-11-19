@@ -15,3 +15,6 @@ lxml>=4.9.0
 # For local file processing (RAG)
 PyPDF2>=3.0.0
 python-docx>=0.8.11
+
+# For AI-powered extraction
+google-generativeai>=0.3.0

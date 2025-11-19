@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "python chatbot_app.py",
+    "startCommand": "/opt/venv/bin/python chatbot_app.py",
     "healthcheckPath": "/api/status",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",

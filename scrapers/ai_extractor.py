@@ -41,7 +41,8 @@ GUIDELINES_OUTPUT = "data/extracted_guidelines.csv"
 BASICS_OUTPUT = "data/extracted_basics.csv"
 
 # Gemini configuration
-MODEL_NAME = "gemini-1.5-flash"  # Fast and cost-effective
+# Use "gemini-pro" for wider compatibility, or "gemini-1.5-flash" / "gemini-1.5-pro" if available
+MODEL_NAME = "gemini-pro"
 MAX_TOKENS = 8000
 
 

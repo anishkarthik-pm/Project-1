@@ -253,14 +253,22 @@ def main():
     if not initialize_gemini():
         print("\nWarning: Gemini not initialized. Chatbot will have limited functionality.")
 
+    # Get port from environment variable (for Railway/Heroku deployment)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_ENV') != 'production'
+
     print("\n" + "="*60)
     print("Starting server...")
-    print("Open http://localhost:5000 in your browser")
+    print(f"Open http://localhost:{port} in your browser")
     print("="*60 + "\n")
 
     # Run Flask app
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=debug)
 
+
+# Initialize on module load for serverless environments (Vercel)
+load_knowledge_base()
+initialize_gemini()
 
 if __name__ == '__main__':
     main()

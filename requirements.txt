@@ -11,3 +11,7 @@ beautifulsoup4>=4.11.0
 
 # Optional: for better HTML parsing
 lxml>=4.9.0
+
+# For local file processing (RAG)
+PyPDF2>=3.0.0
+python-docx>=0.8.11

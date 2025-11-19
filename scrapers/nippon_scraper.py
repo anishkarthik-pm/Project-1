@@ -16,8 +16,8 @@ from urllib.parse import urljoin
 # Constants
 OUTPUT_FILE = "data/nippon_schemes.csv"
 BASE_URL = "https://mf.nipponindiaim.com"
-FUNDS_URL = "https://mf.nipponindiaim.com/FundsAndPerformance/Pages/Funds.aspx"
-API_URL = "https://mf.nipponindiaim.com/InvestorServices/Pages/NAVHistory.aspx"
+NAV_URL = "https://mf.nipponindiaim.com/investor-services/navs"
+SCHEME_INFO_URL = "https://mf.nipponindiaim.com/investor-service/downloads/scheme-information-document"
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -48,10 +48,19 @@ def scrape_funds_list() -> List[str]:
     """Scrape list of fund URLs from main funds page."""
     fund_urls = []
 
+    # Known working fund page URLs (based on actual site structure)
+    known_fund_pages = [
+        "https://mf.nipponindiaim.com/FundsAndPerformance/Pages/NipponIndia-Small-Cap-Fund.aspx",
+        "https://mf.nipponindiaim.com/FundsAndPerformance/Pages/NipponIndia-Large-Cap-Fund.aspx",
+        "https://mf.nipponindiaim.com/FundsAndPerformance/Pages/NipponIndia-Multi-Cap-Fund.aspx",
+        "https://mf.nipponindiaim.com/FundsAndPerformance/Pages/NipponIndia-Flexi-Cap-Fund.aspx",
+        "https://mf.nipponindiaim.com/FundsAndPerformance/Pages/NipponIndia-Value-Fund.aspx",
+        "https://mf.nipponindiaim.com/FundsAndPerformance/Pages/NipponIndia-Short-Duration-Fund.aspx",
+    ]
+
     urls_to_try = [
-        "https://mf.nipponindiaim.com/FundsAndPerformance/Pages/Funds.aspx",
-        "https://mf.nipponindiaim.com/investor-services/nav",
-        "https://www.nipponindiaim.com/mutual-funds/",
+        "https://mf.nipponindiaim.com/investor-services/navs",
+        "https://mf.nipponindiaim.com/",
     ]
 
     for url in urls_to_try:
@@ -69,12 +78,16 @@ def scrape_funds_list() -> List[str]:
                 href = link.get('href', '')
                 text = link.get_text(strip=True).lower()
 
-                # Look for scheme/fund links
-                if any(keyword in href.lower() or keyword in text for keyword in
+                # Look for scheme/fund links with the correct URL pattern
+                if 'FundsAndPerformance/Pages/NipponIndia' in href:
+                    full_url = urljoin(BASE_URL, href)
+                    if full_url not in fund_urls:
+                        fund_urls.append(full_url)
+                elif any(keyword in href.lower() or keyword in text for keyword in
                        ['scheme', 'fund', 'growth', 'dividend', 'equity', 'debt']):
                     if 'nippon' in href.lower() or href.startswith('/'):
                         full_url = urljoin(BASE_URL, href)
-                        if full_url not in fund_urls:
+                        if full_url not in fund_urls and '.aspx' in full_url:
                             fund_urls.append(full_url)
 
             if fund_urls:
@@ -84,6 +97,11 @@ def scrape_funds_list() -> List[str]:
         except Exception as e:
             print(f"  Error: {e}")
             continue
+
+    # If no URLs found from scraping, use known fund pages
+    if not fund_urls:
+        print("  Using known fund page URLs...")
+        fund_urls = known_fund_pages
 
     return fund_urls[:50]  # Limit to 50 funds
 

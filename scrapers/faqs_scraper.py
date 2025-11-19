@@ -14,7 +14,11 @@ from urllib.parse import urljoin
 
 # Constants
 OUTPUT_FILE = "data/faqs.csv"
-AMFI_FAQ_URL = "https://www.amfiindia.com/investor-corner/investor-awareness/faqs"
+# Updated AMFI URLs based on current site structure
+AMFI_FAQ_URLS = [
+    "https://www.amfiindia.com/investor-corner/",
+    "https://www.amfiindia.com/investor/knowledge-center-info?zoneName=TypesOfMutualFundSchemes",
+]
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -45,82 +49,67 @@ def scrape_amfi_faqs() -> List[Dict]:
     """Scrape FAQs from AMFI website."""
     data = []
 
-    try:
-        print(f"  Scraping: {AMFI_FAQ_URL}")
-        response = make_request(AMFI_FAQ_URL)
-        if not response:
-            return data
+    for url in AMFI_FAQ_URLS:
+        try:
+            print(f"  Scraping: {url}")
+            response = make_request(url)
+            if not response:
+                continue
 
-        soup = BeautifulSoup(response.content, 'html.parser')
+            soup = BeautifulSoup(response.content, 'html.parser')
 
-        # AMFI uses accordion-style FAQs
-        # Look for question-answer pairs
+            # AMFI uses accordion-style FAQs
+            # Look for question-answer pairs
 
-        # Try different HTML structures
-        # Pattern 1: Accordion items
-        accordions = soup.find_all(['div', 'section'], class_=lambda x: x and ('accordion' in str(x).lower() or 'faq' in str(x).lower()))
+            # Try different HTML structures
+            # Pattern 1: Accordion items
+            accordions = soup.find_all(['div', 'section'], class_=lambda x: x and ('accordion' in str(x).lower() or 'faq' in str(x).lower()))
 
-        for accordion in accordions:
-            # Find question headers
-            questions = accordion.find_all(['h3', 'h4', 'h5', 'button', 'div'],
-                                          class_=lambda x: x and ('question' in str(x).lower() or 'header' in str(x).lower() or 'title' in str(x).lower()))
+            for accordion in accordions:
+                # Find question headers
+                questions = accordion.find_all(['h3', 'h4', 'h5', 'button', 'div'],
+                                              class_=lambda x: x and ('question' in str(x).lower() or 'header' in str(x).lower() or 'title' in str(x).lower()))
 
-            for q_elem in questions:
-                question = q_elem.get_text(strip=True)
+                for q_elem in questions:
+                    question = q_elem.get_text(strip=True)
 
-                # Find the next sibling or child that contains the answer
-                answer_elem = q_elem.find_next_sibling(['div', 'p']) or q_elem.find_next(['div', 'p'])
+                    # Find the next sibling or child that contains the answer
+                    answer_elem = q_elem.find_next_sibling(['div', 'p']) or q_elem.find_next(['div', 'p'])
 
-                if answer_elem:
-                    answer = answer_elem.get_text(strip=True)
+                    if answer_elem:
+                        answer = answer_elem.get_text(strip=True)
 
-                    if question and answer and len(question) > 10 and len(answer) > 20:
-                        data.append({
-                            'question': question[:500],
-                            'answer': answer[:2000],
-                            'category': 'General',
-                            'source': AMFI_FAQ_URL
-                        })
+                        if question and answer and len(question) > 10 and len(answer) > 20:
+                            data.append({
+                                'question': question[:500],
+                                'answer': answer[:2000],
+                                'category': 'General',
+                                'source': url
+                            })
 
-        # Pattern 2: Definition lists
-        dl_elements = soup.find_all('dl')
-        for dl in dl_elements:
-            dts = dl.find_all('dt')
-            dds = dl.find_all('dd')
+            # Also try to extract any content sections as Q&A format
+            # Find headings and their following paragraphs
+            headings = soup.find_all(['h2', 'h3', 'h4'])
+            for heading in headings:
+                question = heading.get_text(strip=True)
+                next_elem = heading.find_next_sibling(['p', 'div', 'ul'])
+                if next_elem:
+                    answer = next_elem.get_text(strip=True)
+                    if question and answer and len(question) > 5 and len(answer) > 30:
+                        # Skip if already have similar question
+                        if not any(q['question'].lower()[:30] == question.lower()[:30] for q in data):
+                            data.append({
+                                'question': question[:500],
+                                'answer': answer[:2000],
+                                'category': 'AMFI Content',
+                                'source': url
+                            })
 
-            for dt, dd in zip(dts, dds):
-                question = dt.get_text(strip=True)
-                answer = dd.get_text(strip=True)
+        except Exception as e:
+            print(f"  Error scraping {url}: {e}")
+            continue
 
-                if question and answer:
-                    data.append({
-                        'question': question[:500],
-                        'answer': answer[:2000],
-                        'category': 'General',
-                        'source': AMFI_FAQ_URL
-                    })
-
-        # Pattern 3: Q&A with specific classes
-        q_elements = soup.find_all(['div', 'p', 'span'], string=re.compile(r'^Q[\d\.\:\s]|^Question', re.I))
-        for q_elem in q_elements:
-            question = q_elem.get_text(strip=True)
-            answer_elem = q_elem.find_next(['div', 'p'])
-
-            if answer_elem:
-                answer = answer_elem.get_text(strip=True)
-                if answer and not answer.startswith('Q'):
-                    data.append({
-                        'question': question[:500],
-                        'answer': answer[:2000],
-                        'category': 'General',
-                        'source': AMFI_FAQ_URL
-                    })
-
-        print(f"  Scraped {len(data)} FAQs from AMFI")
-
-    except Exception as e:
-        print(f"  Error scraping AMFI FAQs: {e}")
-
+    print(f"  Scraped {len(data)} FAQs from AMFI")
     return data
 
 

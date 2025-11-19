@@ -39,11 +39,11 @@ def scrape_amfi_basics() -> List[Dict]:
     """Scrape mutual fund basics from AMFI website."""
     data = []
 
-    # AMFI Knowledge Center URLs
+    # AMFI Knowledge Center URLs (updated to current structure)
     urls = [
-        ("https://www.amfiindia.com/investor-corner/knowledge-center/what-are-mutual-funds.html", "What are Mutual Funds"),
-        ("https://www.amfiindia.com/investor-corner/knowledge-center/advantages-of-mutual-funds.html", "Advantages of Mutual Funds"),
-        ("https://www.amfiindia.com/investor-corner/knowledge-center/types-of-mutual-fund-schemes.html", "Types of Mutual Fund Schemes"),
+        ("https://www.amfiindia.com/investor/knowledge-center-info?zoneName=TypesOfMutualFundSchemes", "Types of Mutual Fund Schemes"),
+        ("https://www.amfiindia.com/investor/knowledge-center-info?zoneName=TaxRegimeForMutualFunds", "Tax Regime for Mutual Funds"),
+        ("https://www.amfiindia.com/investor-corner/", "Investor Corner"),
     ]
 
     for url, topic in urls:
@@ -53,19 +53,40 @@ def scrape_amfi_basics() -> List[Dict]:
             if response:
                 soup = BeautifulSoup(response.content, 'html.parser')
 
-                # Find main content
-                content_div = soup.find('div', class_='content-area') or soup.find('div', class_='main-content')
-                if content_div:
-                    paragraphs = content_div.find_all('p')
-                    content = ' '.join([p.get_text(strip=True) for p in paragraphs if p.get_text(strip=True)])
+                # Find main content - try multiple selectors
+                content_div = (
+                    soup.find('div', class_='knowledge-center-content') or
+                    soup.find('div', class_='content-area') or
+                    soup.find('div', class_='main-content') or
+                    soup.find('div', id='content') or
+                    soup.find('article') or
+                    soup.find('main')
+                )
 
-                    if content:
+                if content_div:
+                    # Get all text content
+                    paragraphs = content_div.find_all(['p', 'li', 'div'])
+                    content = ' '.join([p.get_text(strip=True) for p in paragraphs if p.get_text(strip=True) and len(p.get_text(strip=True)) > 20])
+
+                    if content and len(content) > 100:
                         data.append({
                             'category': 'Basic Concept',
                             'topic': topic,
                             'content': content[:2000],  # Limit content length
                             'source': url
                         })
+                else:
+                    # Fallback: get all text from body
+                    body = soup.find('body')
+                    if body:
+                        text = body.get_text(separator=' ', strip=True)
+                        if len(text) > 200:
+                            data.append({
+                                'category': 'Basic Concept',
+                                'topic': topic,
+                                'content': text[:2000],
+                                'source': url
+                            })
         except Exception as e:
             print(f"  Error scraping {url}: {e}")
 

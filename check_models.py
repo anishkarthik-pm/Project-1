@@ -32,7 +32,8 @@ print("-" * 50)
 
 text_models = []
 for m in genai.list_models():
-    if 'generateContent' in [method.name for method in m.supported_generation_methods]:
+    # supported_generation_methods is a list of strings
+    if 'generateContent' in m.supported_generation_methods:
         text_models.append(m.name)
         print(f"  {m.name}")
 

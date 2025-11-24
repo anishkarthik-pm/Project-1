@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mutual Fund Advisor - Fintech Dashboard</title>
+    <title>Mutual Fund Advisor - AI Assistant</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -20,51 +20,32 @@
             color: #ffffff;
             height: 100vh;
             display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Main Container */
+        .app-container {
+            display: flex;
+            flex: 1;
             overflow: hidden;
         }
 
         /* Sidebar with vertical icons */
         .sidebar {
-            width: 80px;
+            width: 90px;
             background: #111d18;
             border-right: 1px solid #1b2e26;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px 0;
-            gap: 30px;
-        }
-
-        .sidebar-icon {
-            width: 48px;
-            height: 48px;
-            background: rgba(146, 255, 72, 0.1);
-            border: 1px solid #1b2e26;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .sidebar-icon:hover {
-            background: rgba(146, 255, 72, 0.2);
-            box-shadow: 0 0 20px rgba(146, 255, 72, 0.3);
-            border-color: #92ff48;
-            transform: translateX(5px);
-        }
-
-        .sidebar-icon.active {
-            background: rgba(146, 255, 72, 0.2);
-            border-color: #92ff48;
+            gap: 15px;
         }
 
         .logo-icon {
-            width: 48px;
-            height: 48px;
+            width: 50px;
+            height: 50px;
             background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
             border-radius: 12px;
             display: flex;
@@ -72,23 +53,108 @@
             justify-content: center;
             font-weight: 700;
             color: #0e1612;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
         }
 
-        /* Main Content Area */
-        .main-content {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
+        .sidebar-icon-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 8px;
+            border-radius: 10px;
+            position: relative;
         }
 
-        .dashboard-header {
-            margin-bottom: 30px;
+        .sidebar-icon-wrapper:hover {
+            background: rgba(146, 255, 72, 0.1);
         }
 
-        .dashboard-header h1 {
-            font-size: 2rem;
-            font-weight: 700;
+        .sidebar-icon-wrapper.active {
+            background: rgba(146, 255, 72, 0.15);
+        }
+
+        .sidebar-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(146, 255, 72, 0.1);
+            border: 1px solid #1b2e26;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            transition: all 0.3s;
+        }
+
+        .sidebar-icon-wrapper:hover .sidebar-icon {
+            background: rgba(146, 255, 72, 0.2);
+            box-shadow: 0 0 20px rgba(146, 255, 72, 0.3);
+            border-color: #92ff48;
+            transform: scale(1.1);
+        }
+
+        .sidebar-icon-wrapper.active .sidebar-icon {
+            background: rgba(146, 255, 72, 0.2);
+            border-color: #92ff48;
+        }
+
+        .sidebar-label {
+            font-size: 0.65rem;
+            color: #6b8075;
+            font-weight: 500;
+            text-align: center;
+            transition: color 0.3s;
+        }
+
+        .sidebar-icon-wrapper:hover .sidebar-label,
+        .sidebar-icon-wrapper.active .sidebar-label {
+            color: #92ff48;
+        }
+
+        /* Tooltip on hover */
+        .sidebar-icon-wrapper::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            margin-left: 10px;
+            background: #111d18;
+            border: 1px solid #92ff48;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        .sidebar-icon-wrapper:hover::after {
+            opacity: 1;
+        }
+
+        /* Dynamic Panel (1/3 width) */
+        .dynamic-panel {
+            width: 33.333%;
+            background: #111d18;
+            border-right: 1px solid #1b2e26;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 20px;
+            border-bottom: 1px solid #1b2e26;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
             margin-bottom: 8px;
             background: linear-gradient(135deg, #ffffff 0%, #92ff48 100%);
             -webkit-background-clip: text;
@@ -96,193 +162,56 @@
             background-clip: text;
         }
 
-        .dashboard-header p {
+        .panel-subtitle {
+            font-size: 0.85rem;
             color: #6b8075;
-            font-size: 0.95rem;
         }
 
-        /* Bento Grid 3x3 Layout */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 20px;
-            height: calc(100vh - 180px);
-        }
-
-        .bento-card {
-            background: #111d18;
-            border: 1px solid #1b2e26;
-            border-radius: 20px;
-            padding: 24px;
-            transition: all 0.3s;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .bento-card:hover {
-            border-color: #92ff48;
-            box-shadow: 0 0 30px rgba(146, 255, 72, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .bento-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #92ff48 0%, #00ff88 100%);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .bento-card:hover::before {
-            opacity: 1;
-        }
-
-        /* Specific card sizes */
-        .card-large {
-            grid-column: span 2;
-            grid-row: span 2;
-        }
-
-        .card-medium {
-            grid-column: span 1;
-            grid-row: span 2;
-        }
-
-        .card-small {
-            grid-column: span 1;
-            grid-row: span 1;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-icon {
-            font-size: 1.3rem;
-        }
-
-        .card-badge {
-            background: rgba(146, 255, 72, 0.15);
-            color: #92ff48;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .card-content {
-            height: calc(100% - 50px);
-            overflow-y: auto;
-        }
-
-        /* Chat Card (Large - Main Feature) */
-        .chat-messages {
-            height: calc(100% - 120px);
-            overflow-y: auto;
-            margin-bottom: 16px;
-            padding-right: 10px;
-        }
-
-        .message {
-            margin-bottom: 12px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .message.user { align-items: flex-end; }
-        .message.bot { align-items: flex-start; }
-
-        .message-content {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            line-height: 1.5;
-            font-size: 0.9rem;
-        }
-
-        .message.user .message-content {
-            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
-            color: #0e1612;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.bot .message-content {
-            background: #0e1612;
-            border: 1px solid #1b2e26;
-            color: #ffffff;
-            border-bottom-left-radius: 4px;
-        }
-
-        .message-time {
-            font-size: 0.7rem;
-            color: #6b8075;
-            margin-top: 4px;
-            padding: 0 5px;
-        }
-
-        .chat-input-form {
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input {
+        .panel-content {
             flex: 1;
-            padding: 12px 16px;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* Chat History Items */
+        .history-item {
+            padding: 12px;
             background: #0e1612;
             border: 1px solid #1b2e26;
-            border-radius: 12px;
-            color: #ffffff;
-            font-size: 0.9rem;
-            outline: none;
-            transition: all 0.3s;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .chat-input:focus {
-            border-color: #92ff48;
-            box-shadow: 0 0 15px rgba(146, 255, 72, 0.2);
-        }
-
-        .send-button {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
-            color: #0e1612;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
+            border-radius: 10px;
+            margin-bottom: 10px;
             cursor: pointer;
             transition: all 0.3s;
         }
 
-        .send-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(146, 255, 72, 0.4);
+        .history-item:hover {
+            border-color: #92ff48;
+            box-shadow: 0 0 15px rgba(146, 255, 72, 0.1);
+            transform: translateX(5px);
         }
 
-        .send-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .history-item.active {
+            border-color: #92ff48;
+            background: rgba(146, 255, 72, 0.05);
         }
 
-        /* Fund List Items */
-        .fund-item, .faq-item, .insight-item {
+        .history-title {
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-time {
+            font-size: 0.75rem;
+            color: #6b8075;
+        }
+
+        /* Fund/FAQ Items */
+        .fund-item, .faq-item {
             padding: 12px;
             background: #0e1612;
             border: 1px solid #1b2e26;
@@ -291,7 +220,7 @@
             transition: all 0.3s;
         }
 
-        .fund-item:hover, .faq-item:hover, .insight-item:hover {
+        .fund-item:hover, .faq-item:hover {
             border-color: #92ff48;
             box-shadow: 0 0 15px rgba(146, 255, 72, 0.1);
         }
@@ -314,12 +243,6 @@
             color: #92ff48;
         }
 
-        .fund-nav {
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        /* FAQ Items */
         .faq-question {
             font-weight: 600;
             color: #ffffff;
@@ -340,8 +263,7 @@
             display: block;
         }
 
-        /* Trending Badge */
-        .trending-badge {
+        .category-badge {
             display: inline-block;
             background: rgba(146, 255, 72, 0.15);
             color: #92ff48;
@@ -349,97 +271,120 @@
             border-radius: 4px;
             font-size: 0.7rem;
             font-weight: 600;
+            margin-top: 6px;
         }
 
-        /* Stats Display */
-        .stat-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .stat-item {
+        /* Main Chat Area (2/3 width) */
+        .chat-area {
+            width: 66.666%;
+            display: flex;
+            flex-direction: column;
             background: #0e1612;
-            border: 1px solid #1b2e26;
-            border-radius: 10px;
-            padding: 12px;
-            text-align: center;
         }
 
-        .stat-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #92ff48;
-            margin-bottom: 4px;
-        }
-
-        .stat-label {
-            font-size: 0.75rem;
-            color: #6b8075;
-            text-transform: uppercase;
-        }
-
-        /* Comparison Table */
-        .comparison-table {
-            font-size: 0.8rem;
-        }
-
-        .comparison-row {
+        .chat-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #1b2e26;
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #1b2e26;
-        }
-
-        .comparison-label {
-            color: #6b8075;
-        }
-
-        .comparison-value {
-            color: #ffffff;
-            font-weight: 600;
-        }
-
-        /* Rating Stars */
-        .rating-display {
-            display: flex;
             align-items: center;
-            gap: 8px;
-            margin-top: 12px;
         }
 
-        .stars {
-            color: #fbbf24;
-            font-size: 1.2rem;
+        .chat-header-left h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, #ffffff 0%, #92ff48 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .rating-text {
+        .chat-header-left p {
             font-size: 0.85rem;
             color: #6b8075;
         }
 
-        /* Disclaimer */
-        .disclaimer {
-            background: rgba(251, 191, 36, 0.1);
-            border: 1px solid rgba(251, 191, 36, 0.3);
-            border-radius: 10px;
-            padding: 12px;
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #6b8075;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-badge {
+            background: rgba(146, 255, 72, 0.15);
+            color: #92ff48;
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 0.75rem;
-            color: #fbbf24;
-            line-height: 1.5;
+            font-weight: 600;
+            margin-left: 10px;
         }
 
-        .disclaimer-icon {
-            display: inline-block;
-            margin-right: 6px;
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: #0e1612;
         }
 
-        /* Typing Indicator */
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message.user { align-items: flex-end; }
+        .message.bot { align-items: flex-start; }
+
+        .message-content {
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
+            color: #0e1612;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: #111d18;
+            border: 1px solid #1b2e26;
+            color: #ffffff;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: #6b8075;
+            margin-top: 6px;
+            padding: 0 5px;
+        }
+
         .typing-indicator {
             display: flex;
             gap: 4px;
-            padding: 12px 16px;
-            background: #0e1612;
+            padding: 14px 18px;
+            background: #111d18;
             border: 1px solid #1b2e26;
             border-radius: 16px;
             border-bottom-left-radius: 4px;
@@ -462,7 +407,88 @@
             40% { transform: scale(1); }
         }
 
-        /* Modal */
+        .chat-input-container {
+            padding: 20px 30px;
+            background: #111d18;
+            border-top: 1px solid #1b2e26;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 12px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 14px 18px;
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .chat-input:focus {
+            border-color: #92ff48;
+            box-shadow: 0 0 15px rgba(146, 255, 72, 0.2);
+        }
+
+        .send-button {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
+            color: #0e1612;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(146, 255, 72, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Insights Footer */
+        .insights-footer {
+            background: #111d18;
+            border-top: 1px solid #1b2e26;
+            padding: 12px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.8rem;
+        }
+
+        .insights-icon {
+            font-size: 1.2rem;
+        }
+
+        .insights-text {
+            flex: 1;
+            color: #6b8075;
+            line-height: 1.4;
+        }
+
+        .disclaimer-text {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+        }
+
+        /* Rating Modal */
         .modal {
             display: none;
             position: fixed;
@@ -484,7 +510,7 @@
             border: 1px solid #1b2e26;
             border-radius: 20px;
             width: 90%;
-            max-width: 700px;
+            max-width: 500px;
             max-height: 80vh;
             overflow: hidden;
             display: flex;
@@ -523,7 +549,6 @@
             flex: 1;
         }
 
-        /* Rating Modal */
         .rating-stars {
             display: flex;
             gap: 10px;
@@ -582,6 +607,16 @@
             box-shadow: 0 0 20px rgba(146, 255, 72, 0.4);
         }
 
+        .rating-display {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #6b8075;
+        }
+
+        .rating-stats {
+            font-size: 0.85rem;
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
@@ -601,77 +636,6 @@
             background: #92ff48;
         }
 
-        /* Status Indicator */
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.75rem;
-            color: #6b8075;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4ade80;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Mobile Responsive */
-        @media (max-width: 1200px) {
-            .bento-grid {
-                grid-template-columns: repeat(2, 1fr);
-                grid-template-rows: auto;
-            }
-
-            .card-large {
-                grid-column: span 2;
-                grid-row: span 1;
-            }
-
-            .card-medium {
-                grid-column: span 1;
-                grid-row: span 1;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 60px;
-                padding: 15px 0;
-            }
-
-            .sidebar-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-            }
-
-            .main-content {
-                padding: 15px;
-            }
-
-            .bento-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .card-large, .card-medium, .card-small {
-                grid-column: span 1;
-                grid-row: span 1;
-            }
-
-            .dashboard-header h1 {
-                font-size: 1.5rem;
-            }
-        }
-
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -684,206 +648,144 @@
             margin-bottom: 10px;
             opacity: 0.5;
         }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .dynamic-panel {
+                width: 40%;
+            }
+
+            .chat-area {
+                width: 60%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+                padding: 15px 0;
+            }
+
+            .sidebar-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 1.2rem;
+            }
+
+            .sidebar-label {
+                font-size: 0.6rem;
+            }
+
+            .dynamic-panel {
+                position: fixed;
+                left: 70px;
+                top: 0;
+                height: 100%;
+                width: 300px;
+                z-index: 50;
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .dynamic-panel.open {
+                transform: translateX(0);
+            }
+
+            .chat-area {
+                width: 100%;
+            }
+
+            .insights-footer {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Sidebar with Vertical Icons -->
-    <div class="sidebar">
-        <div class="logo-icon">MF</div>
-        <div class="sidebar-icon active" onclick="showView('dashboard')" title="Dashboard">📊</div>
-        <div class="sidebar-icon" onclick="showView('chat')" title="Chat">💬</div>
-        <div class="sidebar-icon" onclick="showFundsModal()" title="Funds">📈</div>
-        <div class="sidebar-icon" onclick="showFaqsModal()" title="FAQs">❓</div>
-        <div class="sidebar-icon" onclick="showRatingModal()" title="Rate">⭐</div>
-        <div style="flex: 1;"></div>
-        <div class="sidebar-icon" onclick="toggleTheme()" title="Settings">⚙️</div>
-    </div>
+    <div class="app-container">
+        <!-- Sidebar with Vertical Icons -->
+        <div class="sidebar">
+            <div class="logo-icon">MF</div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="dashboard-header">
-            <h1>Mutual Fund Advisor</h1>
-            <p>AI-powered insights for smarter investments</p>
-            <div class="status-indicator" style="margin-top: 8px;">
-                <span class="status-dot" id="statusDot"></span>
-                <span id="statusText">Connected</span>
-                <span style="margin-left: 10px;" id="kbStatus">Loading...</span>
+            <div class="sidebar-icon-wrapper active" data-tooltip="Chat with AI Advisor" onclick="switchPanel('chat')">
+                <div class="sidebar-icon">💬</div>
+                <div class="sidebar-label">Chat</div>
+            </div>
+
+            <div class="sidebar-icon-wrapper" data-tooltip="View Covered Funds" onclick="switchPanel('funds')">
+                <div class="sidebar-icon">📈</div>
+                <div class="sidebar-label">Funds</div>
+            </div>
+
+            <div class="sidebar-icon-wrapper" data-tooltip="Frequently Asked Questions" onclick="switchPanel('faqs')">
+                <div class="sidebar-icon">❓</div>
+                <div class="sidebar-label">FAQs</div>
+            </div>
+
+            <div style="flex: 1;"></div>
+
+            <div class="sidebar-icon-wrapper" data-tooltip="Rate Your Experience" onclick="showRatingModal()">
+                <div class="sidebar-icon">⭐</div>
+                <div class="sidebar-label">Rate</div>
             </div>
         </div>
 
-        <!-- Bento Grid 3x3 Layout -->
-        <div class="bento-grid">
-            <!-- Chat with Advisor (Large Card) -->
-            <div class="bento-card card-large">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span class="card-icon">💬</span>
-                        Chat with Advisor
-                    </div>
-                    <span class="card-badge" id="chatStatus">AI Ready</span>
+        <!-- Dynamic Panel (1/3) -->
+        <div class="dynamic-panel" id="dynamicPanel">
+            <div class="panel-header">
+                <div class="panel-title" id="panelTitle">Chat History</div>
+                <div class="panel-subtitle" id="panelSubtitle">Your recent conversations</div>
+            </div>
+            <div class="panel-content" id="panelContent">
+                <div class="empty-state">
+                    <div class="empty-icon">💬</div>
+                    <p>No chat history yet</p>
                 </div>
-                <div class="card-content">
-                    <div class="chat-messages" id="chatMessages">
-                        <div class="message bot">
-                            <div class="message-content">
-                                Hello! I'm your Mutual Fund Advisor. Ask me about:
-                                <br>• Fund recommendations
-                                <br>• Investment strategies
-                                <br>• Tax implications
-                                <br>• SEBI regulations
-                            </div>
-                        </div>
-                    </div>
-                    <form class="chat-input-form" onsubmit="sendMessage(event)">
-                        <input type="text" class="chat-input" id="userInput" placeholder="Ask about mutual funds..." autocomplete="off">
-                        <button type="submit" class="send-button" id="sendButton">Send</button>
-                    </form>
+            </div>
+        </div>
+
+        <!-- Main Chat Area (2/3) -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <h1>Mutual Fund Advisor</h1>
+                    <p>AI-powered insights for smarter investments</p>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Connected</span>
+                    <span class="chat-badge" id="kbStatus">Loading...</span>
                 </div>
             </div>
 
-            <!-- Fund Explorer (Medium Card) -->
-            <div class="bento-card card-medium">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span class="card-icon">🔍</span>
-                        Fund Explorer
-                    </div>
-                    <span class="card-badge" id="fundsCount">0</span>
-                </div>
-                <div class="card-content" id="fundExplorer">
-                    <div class="empty-state">
-                        <div class="empty-icon">📊</div>
-                        <p>Loading funds...</p>
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-content">
+                        Hello! I'm your Mutual Fund Advisor. Ask me about:
+                        <br>• Fund recommendations and comparisons
+                        <br>• Investment strategies and tax implications
+                        <br>• SEBI regulations and guidelines
+                        <br>• NAV, SIP, expense ratios, and more
                     </div>
                 </div>
             </div>
 
-            <!-- Trending Funds (Small Card) -->
-            <div class="bento-card card-small">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span class="card-icon">🔥</span>
-                        Trending
-                    </div>
-                </div>
-                <div class="card-content" id="trendingFunds">
-                    <div class="fund-item">
-                        <div class="fund-name">Nippon Large Cap <span class="trending-badge">+12.5%</span></div>
-                        <div class="fund-details">
-                            <span class="fund-category">Large Cap</span>
-                            <span class="fund-nav">₹52.30</span>
-                        </div>
-                    </div>
-                    <div class="fund-item">
-                        <div class="fund-name">Nippon Flexi Cap <span class="trending-badge">+10.2%</span></div>
-                        <div class="fund-details">
-                            <span class="fund-category">Flexi Cap</span>
-                            <span class="fund-nav">₹65.20</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Stats (Small Card) -->
-            <div class="bento-card card-small">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span class="card-icon">📈</span>
-                        Quick Stats
-                    </div>
-                </div>
-                <div class="card-content">
-                    <div class="stat-grid">
-                        <div class="stat-item">
-                            <div class="stat-value" id="totalFunds">0</div>
-                            <div class="stat-label">Total Funds</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="totalFaqs">0</div>
-                            <div class="stat-label">FAQs</div>
-                        </div>
-                    </div>
-                    <div class="rating-display">
-                        <span class="stars">★★★★★</span>
-                        <span class="rating-text" id="avgRating">No ratings yet</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fund Comparison (Small Card) -->
-            <div class="bento-card card-small">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span class="card-icon">⚖️</span>
-                        Compare
-                    </div>
-                </div>
-                <div class="card-content">
-                    <div class="comparison-table" id="comparisonTable">
-                        <div class="comparison-row">
-                            <span class="comparison-label">Expense Ratio</span>
-                            <span class="comparison-value">0.75% - 2.10%</span>
-                        </div>
-                        <div class="comparison-row">
-                            <span class="comparison-label">Min Investment</span>
-                            <span class="comparison-value">₹500 - ₹5,000</span>
-                        </div>
-                        <div class="comparison-row">
-                            <span class="comparison-label">Exit Load</span>
-                            <span class="comparison-value">0% - 1%</span>
-                        </div>
-                        <div class="comparison-row">
-                            <span class="comparison-label">Lock-in</span>
-                            <span class="comparison-value">0 - 3 years</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Insights & Disclaimer (Small Card) -->
-            <div class="bento-card card-small">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span class="card-icon">💡</span>
-                        Insights
-                    </div>
-                </div>
-                <div class="card-content">
-                    <div class="insight-item">
-                        <div class="fund-name">Market Outlook</div>
-                        <div class="fund-details" style="display: block; margin-top: 6px;">
-                            Indian equity markets showing strong momentum with large-cap funds performing well.
-                        </div>
-                    </div>
-                    <div class="disclaimer">
-                        <span class="disclaimer-icon">⚠️</span>
-                        <strong>Disclaimer:</strong> Mutual fund investments are subject to market risks. Past performance is not indicative of future returns. Please read all scheme-related documents carefully before investing. Consult a financial advisor for personalized advice.
-                    </div>
-                </div>
+            <div class="chat-input-container">
+                <form class="chat-input-form" onsubmit="sendMessage(event)">
+                    <input type="text" class="chat-input" id="userInput" placeholder="Ask about mutual funds..." autocomplete="off">
+                    <button type="submit" class="send-button" id="sendButton">Send</button>
+                </form>
             </div>
         </div>
     </div>
 
-    <!-- Funds Modal -->
-    <div class="modal" id="fundsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>📊 Covered Fund Names</h3>
-                <button class="modal-close" onclick="closeModal('fundsModal')">&times;</button>
-            </div>
-            <div class="modal-body" id="fundsList">Loading...</div>
-        </div>
-    </div>
-
-    <!-- FAQs Modal -->
-    <div class="modal" id="faqsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>❓ Frequently Asked Questions</h3>
-                <button class="modal-close" onclick="closeModal('faqsModal')">&times;</button>
-            </div>
-            <div class="modal-body" id="faqsList">Loading...</div>
-        </div>
+    <!-- Insights Footer -->
+    <div class="insights-footer">
+        <span class="insights-icon">💡</span>
+        <span class="insights-text">Market Insight: Indian equity markets showing strong momentum with large-cap funds performing well.</span>
+        <span class="disclaimer-text">⚠️ Mutual fund investments are subject to market risks. Read all scheme documents carefully.</span>
     </div>
 
     <!-- Rating Modal -->
@@ -894,6 +796,9 @@
                 <button class="modal-close" onclick="closeModal('ratingModal')">&times;</button>
             </div>
             <div class="modal-body">
+                <div class="rating-display">
+                    <div class="rating-stats" id="ratingStats">Share your feedback to help us improve</div>
+                </div>
                 <div class="rating-stars">
                     <button class="star-btn" onclick="setRating(1)">★</button>
                     <button class="star-btn" onclick="setRating(2)">★</button>
@@ -901,7 +806,6 @@
                     <button class="star-btn" onclick="setRating(4)">★</button>
                     <button class="star-btn" onclick="setRating(5)">★</button>
                 </div>
-                <p style="text-align: center; color: #6b8075; margin-bottom: 20px;">How was your experience?</p>
                 <textarea class="rating-feedback" id="ratingFeedback" placeholder="Share your feedback (optional)"></textarea>
                 <button class="rating-submit" onclick="submitRating()">Submit Rating</button>
             </div>
@@ -912,14 +816,18 @@
         const chatMessages = document.getElementById('chatMessages');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
+        const panelContent = document.getElementById('panelContent');
+        const panelTitle = document.getElementById('panelTitle');
+        const panelSubtitle = document.getElementById('panelSubtitle');
 
         let currentMessages = [];
         let currentSessionId = null;
         let currentRating = 0;
+        let currentPanel = 'chat';
 
         // Initialize
         checkStatus();
-        loadFunds();
+        loadChatHistory();
         loadRatings();
         userInput.focus();
 
@@ -929,36 +837,128 @@
                 const response = await fetch('/api/status');
                 const data = await response.json();
                 document.getElementById('statusText').textContent = data.status === 'ok' ? 'Connected' : 'Error';
-                document.getElementById('kbStatus').textContent = `${data.knowledge_base.total} records loaded`;
-                document.getElementById('totalFunds').textContent = data.knowledge_base.schemes;
-                document.getElementById('totalFaqs').textContent = data.knowledge_base.faqs;
+                document.getElementById('kbStatus').textContent = `${data.knowledge_base.total} records`;
             } catch (error) {
                 document.getElementById('statusText').textContent = 'Offline';
             }
         }
 
-        // Load funds into explorer
+        // Switch panel view
+        function switchPanel(panel) {
+            currentPanel = panel;
+
+            // Update active icon
+            document.querySelectorAll('.sidebar-icon-wrapper').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            switch(panel) {
+                case 'chat':
+                    panelTitle.textContent = 'Chat History';
+                    panelSubtitle.textContent = 'Your recent conversations';
+                    loadChatHistory();
+                    break;
+                case 'funds':
+                    panelTitle.textContent = 'Covered Funds';
+                    panelSubtitle.textContent = 'Browse available mutual funds';
+                    loadFunds();
+                    break;
+                case 'faqs':
+                    panelTitle.textContent = 'FAQs';
+                    panelSubtitle.textContent = 'Frequently asked questions';
+                    loadFAQs();
+                    break;
+            }
+        }
+
+        // Load chat history
+        async function loadChatHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+
+                if (data.history.length === 0) {
+                    panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>No chat history yet</p></div>';
+                    return;
+                }
+
+                panelContent.innerHTML = data.history.map(session => `
+                    <div class="history-item" onclick="loadSession('${session.id}')">
+                        <div class="history-title">${session.title}</div>
+                        <div class="history-time">${new Date(session.timestamp).toLocaleDateString()}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading history:', error);
+                panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>Error loading history</p></div>';
+            }
+        }
+
+        // Load session
+        async function loadSession(sessionId) {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                const session = data.history.find(s => s.id === sessionId);
+
+                if (session) {
+                    chatMessages.innerHTML = '';
+                    session.messages.forEach(msg => {
+                        addMessage(msg.content, msg.role === 'user');
+                    });
+                    currentMessages = session.messages;
+                    currentSessionId = sessionId;
+                }
+            } catch (error) {
+                console.error('Error loading session:', error);
+            }
+        }
+
+        // Load funds
         async function loadFunds() {
             try {
                 const response = await fetch('/api/funds');
                 const data = await response.json();
-                document.getElementById('fundsCount').textContent = data.total;
 
-                const explorer = document.getElementById('fundExplorer');
-                if (data.funds.length > 0) {
-                    explorer.innerHTML = data.funds.slice(0, 6).map(f => `
-                        <div class="fund-item">
-                            <div class="fund-name">${f.name}</div>
-                            <div class="fund-details">
-                                <span class="fund-category">${f.category}</span>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    explorer.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No funds available</p></div>';
+                if (data.funds.length === 0) {
+                    panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No funds available</p></div>';
+                    return;
                 }
+
+                panelContent.innerHTML = data.funds.map(f => `
+                    <div class="fund-item">
+                        <div class="fund-name">${f.name}</div>
+                        <div class="fund-details">
+                            <span class="fund-category">${f.category}</span>
+                        </div>
+                    </div>
+                `).join('');
             } catch (error) {
                 console.error('Error loading funds:', error);
+                panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>Error loading funds</p></div>';
+            }
+        }
+
+        // Load FAQs
+        async function loadFAQs() {
+            try {
+                const response = await fetch('/api/faqs');
+                const data = await response.json();
+
+                if (data.faqs.length === 0) {
+                    panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">❓</div><p>No FAQs available</p></div>';
+                    return;
+                }
+
+                panelContent.innerHTML = data.faqs.map(faq => `
+                    <div class="faq-item" onclick="this.classList.toggle('expanded')">
+                        <div class="faq-question">${faq.question}</div>
+                        <div class="faq-answer">${faq.answer}</div>
+                        <span class="category-badge">${faq.category}</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading FAQs:', error);
+                panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">❓</div><p>Error loading FAQs</p></div>';
             }
         }
 
@@ -968,7 +968,7 @@
                 const response = await fetch('/api/ratings');
                 const data = await response.json();
                 if (data.total > 0) {
-                    document.getElementById('avgRating').textContent = `${data.average}/5 (${data.total} ratings)`;
+                    document.getElementById('ratingStats').textContent = `Average Rating: ${data.average}/5 stars (${data.total} ratings)`;
                 }
             } catch (error) {
                 console.error('Error loading ratings:', error);
@@ -1045,53 +1045,13 @@
             userInput.focus();
         }
 
-        // Show funds modal
-        async function showFundsModal() {
-            document.getElementById('fundsModal').classList.add('active');
-            try {
-                const response = await fetch('/api/funds');
-                const data = await response.json();
-                document.getElementById('fundsList').innerHTML = data.funds.length
-                    ? data.funds.map(f => `
-                        <div class="fund-item">
-                            <div class="fund-name">${f.name}</div>
-                            <div class="fund-details">
-                                <span class="fund-category">${f.category}</span>
-                            </div>
-                        </div>
-                    `).join('')
-                    : '<div class="empty-state"><div class="empty-icon">📊</div><p>No funds loaded</p></div>';
-            } catch (error) {
-                document.getElementById('fundsList').innerHTML = '<p style="color: #f87171;">Error loading funds</p>';
-            }
-        }
-
-        // Show FAQs modal
-        async function showFaqsModal() {
-            document.getElementById('faqsModal').classList.add('active');
-            try {
-                const response = await fetch('/api/faqs');
-                const data = await response.json();
-                document.getElementById('faqsList').innerHTML = data.faqs.length
-                    ? data.faqs.map((faq, i) => `
-                        <div class="faq-item" onclick="this.classList.toggle('expanded')">
-                            <div class="faq-question">${faq.question}</div>
-                            <div class="faq-answer">${faq.answer}</div>
-                            <span class="trending-badge" style="margin-top: 8px;">${faq.category}</span>
-                        </div>
-                    `).join('')
-                    : '<div class="empty-state"><div class="empty-icon">❓</div><p>No FAQs loaded</p></div>';
-            } catch (error) {
-                document.getElementById('faqsList').innerHTML = '<p style="color: #f87171;">Error loading FAQs</p>';
-            }
-        }
-
-        // Rating
+        // Rating modal
         function showRatingModal() {
             document.getElementById('ratingModal').classList.add('active');
             currentRating = 0;
             document.querySelectorAll('.star-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('ratingFeedback').value = '';
+            loadRatings();
         }
 
         function setRating(rating) {
@@ -1128,16 +1088,6 @@
         // Modal helpers
         function closeModal(id) {
             document.getElementById(id).classList.remove('active');
-        }
-
-        function showView(view) {
-            // Future: Switch between different views
-            console.log('Switching to view:', view);
-        }
-
-        function toggleTheme() {
-            // Future: Theme toggle functionality
-            alert('Theme toggle coming soon!');
         }
 
         // Close modals on outside click

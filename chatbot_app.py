@@ -87,7 +87,7 @@ def load_knowledge_base():
     # Try extracted files first (AI-processed), then fall back to scraped files
     files_to_load = {
         'faqs': ['data/extracted_faqs.csv', 'data/faqs.csv'],
-        'schemes': ['data/extracted_schemes.csv', 'data/nippon_schemes.csv'],
+        'schemes': ['data/comprehensive_schemes.csv', 'data/extracted_schemes.csv', 'data/nippon_schemes.csv'],
         'guidelines': ['data/extracted_guidelines.csv', 'data/sebi_guidelines.csv'],
         'basics': ['data/extracted_basics.csv', 'data/mutual_fund_basics.csv']
     }
@@ -157,16 +157,67 @@ def search_knowledge_base(query: str) -> tuple:
     # Search schemes
     for scheme in knowledge_base['schemes']:
         name = scheme.get('scheme_name', '').lower()
-        if any(word in name for word in query_lower.split()):
+        category = scheme.get('category', '').lower()
+        fund_manager = scheme.get('fund_manager', '').lower()
+        amc = scheme.get('amc', '').lower()
+
+        # Check if query matches scheme name, category, fund manager, or AMC
+        if any(word in name or word in category or word in fund_manager or word in amc for word in query_lower.split()):
             scheme_info = f"Scheme: {scheme.get('scheme_name', '')}\n"
+            scheme_info += f"AMC: {scheme.get('amc', 'N/A')}\n"
             scheme_info += f"Category: {scheme.get('category', 'N/A')}\n"
-            scheme_info += f"NAV: {scheme.get('nav', 'N/A')}\n"
-            scheme_info += f"Expense Ratio: {scheme.get('expense_ratio', 'N/A')}\n"
-            scheme_info += f"Risk: {scheme.get('riskometer', 'N/A')}\n"
-            scheme_info += f"Objective: {scheme.get('scheme_objective', 'N/A')}"
+            scheme_info += f"NAV: {scheme.get('nav', 'N/A')} (as on {scheme.get('nav_date', 'N/A')})\n"
+
+            # Add fund manager if available
+            if scheme.get('fund_manager'):
+                scheme_info += f"Fund Manager: {scheme.get('fund_manager')}\n"
+
+            # Add inception date and AUM if available
+            if scheme.get('inception_date'):
+                scheme_info += f"Inception Date: {scheme.get('inception_date')}\n"
+            if scheme.get('aum'):
+                scheme_info += f"AUM: {scheme.get('aum')}\n"
+
+            # Add expense ratio and exit load
+            if scheme.get('expense_ratio'):
+                scheme_info += f"Expense Ratio: {scheme.get('expense_ratio')}\n"
+            if scheme.get('exit_load'):
+                scheme_info += f"Exit Load: {scheme.get('exit_load')}\n"
+
+            # Add returns if available
+            if scheme.get('returns_1y') or scheme.get('returns_3y') or scheme.get('returns_5y'):
+                scheme_info += f"Returns: "
+                returns_parts = []
+                if scheme.get('returns_1y'):
+                    returns_parts.append(f"1Y: {scheme.get('returns_1y')}")
+                if scheme.get('returns_3y'):
+                    returns_parts.append(f"3Y: {scheme.get('returns_3y')}")
+                if scheme.get('returns_5y'):
+                    returns_parts.append(f"5Y: {scheme.get('returns_5y')}")
+                scheme_info += ", ".join(returns_parts) + "\n"
+
+            # Add sector allocation if available
+            if scheme.get('sector_allocation'):
+                scheme_info += f"Sector Allocation: {scheme.get('sector_allocation')}\n"
+
+            # Add top holdings if available
+            if scheme.get('top_holdings'):
+                scheme_info += f"Top Holdings: {scheme.get('top_holdings')}\n"
+
+            # Add risk level if available
+            if scheme.get('risk_level'):
+                scheme_info += f"Risk Level: {scheme.get('risk_level')}\n"
+
             relevant_context.append(scheme_info)
-            if 'Nippon India' not in sources:
-                sources.append('Nippon India Mutual Fund')
+
+            # Add source attribution
+            if scheme.get('amc'):
+                source = scheme.get('amc')
+                if source not in sources:
+                    sources.append(source)
+            elif 'Nippon India' in scheme.get('scheme_name', ''):
+                if 'Nippon India Mutual Fund' not in sources:
+                    sources.append('Nippon India Mutual Fund')
 
     # Search guidelines
     for guideline in knowledge_base['guidelines']:

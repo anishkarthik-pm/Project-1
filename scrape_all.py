@@ -23,6 +23,7 @@ from scrapers import mutual_fund_basics
 from scrapers import sebi_scraper
 from scrapers import nippon_scraper
 from scrapers import faqs_scraper
+from scrapers import comprehensive_fund_scraper
 
 
 def print_banner():
@@ -58,7 +59,8 @@ def print_summary(results: dict):
         "data/mutual_fund_basics.csv",
         "data/sebi_guidelines.csv",
         "data/nippon_schemes.csv",
-        "data/faqs.csv"
+        "data/faqs.csv",
+        "data/comprehensive_schemes.csv"
     ]
     for f in output_files:
         if os.path.exists(f):
@@ -85,6 +87,7 @@ def run_all_scrapers(scrapers_to_run=None):
         'sebi': ('SEBI Guidelines', sebi_scraper.run),
         'nippon': ('Nippon India MF', nippon_scraper.run),
         'faqs': ('FAQs', faqs_scraper.run),
+        'comprehensive': ('Comprehensive Fund Data', comprehensive_fund_scraper.main),
     }
 
     # Filter scrapers if specific ones requested
@@ -130,17 +133,18 @@ Examples:
   python scrape_all.py --only sebi faqs   # Run SEBI and FAQs scrapers
 
 Available scrapers:
-  basics  - Mutual fund definitions and concepts
-  sebi    - SEBI guidelines and regulations
-  nippon  - Nippon India mutual fund schemes
-  faqs    - Frequently asked questions
+  basics         - Mutual fund definitions and concepts
+  sebi           - SEBI guidelines and regulations
+  nippon         - Nippon India mutual fund schemes
+  faqs           - Frequently asked questions
+  comprehensive  - Comprehensive fund data with fund managers, sectors, holdings, returns, exit load
         """
     )
 
     parser.add_argument(
         '--only',
         nargs='+',
-        choices=['basics', 'sebi', 'nippon', 'faqs'],
+        choices=['basics', 'sebi', 'nippon', 'faqs', 'comprehensive'],
         help='Run only specified scrapers'
     )
 

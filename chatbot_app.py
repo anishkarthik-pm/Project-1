@@ -128,10 +128,11 @@ def initialize_gemini():
         return False
 
 
-def search_knowledge_base(query: str) -> str:
-    """Search the knowledge base for relevant context."""
+def search_knowledge_base(query: str) -> tuple:
+    """Search the knowledge base for relevant context and return sources."""
     query_lower = query.lower()
     relevant_context = []
+    sources = []
 
     # Search FAQs
     for faq in knowledge_base['faqs']:
@@ -139,6 +140,9 @@ def search_knowledge_base(query: str) -> str:
         answer = faq.get('answer', '')
         if any(word in question for word in query_lower.split()):
             relevant_context.append(f"Q: {faq.get('question', '')}\nA: {answer}")
+            source = faq.get('source', faq.get('category', 'Knowledge Base'))
+            if source not in sources:
+                sources.append(source)
 
     # Search basics/concepts
     for basic in knowledge_base['basics']:
@@ -146,6 +150,9 @@ def search_knowledge_base(query: str) -> str:
         content = basic.get('content', '')
         if any(word in topic or word in content.lower() for word in query_lower.split()):
             relevant_context.append(f"Topic: {basic.get('topic', '')}\n{content}")
+            source = basic.get('source', 'AMFI Knowledge Center')
+            if source not in sources:
+                sources.append(source)
 
     # Search schemes
     for scheme in knowledge_base['schemes']:
@@ -158,6 +165,8 @@ def search_knowledge_base(query: str) -> str:
             scheme_info += f"Risk: {scheme.get('riskometer', 'N/A')}\n"
             scheme_info += f"Objective: {scheme.get('scheme_objective', 'N/A')}"
             relevant_context.append(scheme_info)
+            if 'Nippon India' not in sources:
+                sources.append('Nippon India Mutual Fund')
 
     # Search guidelines
     for guideline in knowledge_base['guidelines']:
@@ -165,10 +174,12 @@ def search_knowledge_base(query: str) -> str:
         desc = guideline.get('description', '')
         if any(word in title or word in desc.lower() for word in query_lower.split()):
             relevant_context.append(f"Guideline: {guideline.get('title', '')}\n{desc}")
+            if 'SEBI' not in sources:
+                sources.append('SEBI Guidelines')
 
     # Limit context size
     context = "\n\n---\n\n".join(relevant_context[:10])
-    return context[:8000] if context else ""
+    return (context[:8000] if context else "", sources)
 
 
 def generate_response(query: str) -> str:
@@ -179,7 +190,7 @@ def generate_response(query: str) -> str:
         return "Error: AI model not initialized. Please check your API key."
 
     # Get relevant context from knowledge base
-    context = search_knowledge_base(query)
+    context, sources = search_knowledge_base(query)
 
     # Create prompt with context
     if context:
@@ -197,6 +208,7 @@ Instructions:
 - Keep responses concise but informative
 - Use bullet points for lists
 - Mention specific scheme names, numbers, or percentages when available
+- Do NOT include source citations in your response - they will be added automatically
 
 RESPONSE:"""
     else:
@@ -214,7 +226,13 @@ RESPONSE:"""
 
     try:
         response = model.generate_content(prompt)
-        return response.text
+        answer = response.text
+
+        # Add source citations if sources were found
+        if sources:
+            answer += "\n\n---\n📚 **Sources:** " + ", ".join(sources)
+
+        return answer
     except Exception as e:
         return f"Error generating response: {str(e)}"
 
@@ -265,8 +283,8 @@ def search():
     if not query:
         return jsonify({'error': 'No query provided'}), 400
 
-    context = search_knowledge_base(query)
-    return jsonify({'results': context})
+    context, sources = search_knowledge_base(query)
+    return jsonify({'results': context, 'sources': sources})
 
 
 @app.route('/api/funds', methods=['GET'])

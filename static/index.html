@@ -305,6 +305,30 @@
             color: #6b8075;
         }
 
+        .chat-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-control-btn {
+            padding: 8px 16px;
+            background: rgba(146, 255, 72, 0.1);
+            border: 1px solid #1b2e26;
+            color: #92ff48;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .chat-control-btn:hover {
+            background: rgba(146, 255, 72, 0.2);
+            border-color: #92ff48;
+            transform: translateY(-2px);
+        }
+
         .status-indicator {
             display: flex;
             align-items: center;
@@ -458,34 +482,27 @@
             cursor: not-allowed;
         }
 
-        /* Insights Footer */
-        .insights-footer {
-            background: #111d18;
+        /* Disclaimer Footer - aligned to chat window only */
+        .disclaimer-footer {
+            background: transparent;
             border-top: 1px solid #1b2e26;
-            padding: 12px 30px;
+            padding: 12px 0;
             display: flex;
+            justify-content: center;
             align-items: center;
-            gap: 15px;
-            font-size: 0.8rem;
-        }
-
-        .insights-icon {
-            font-size: 1.2rem;
-        }
-
-        .insights-text {
-            flex: 1;
-            color: #6b8075;
-            line-height: 1.4;
+            font-size: 0.75rem;
+            margin-left: calc(90px + 33.333%); /* Sidebar + Dynamic Panel width */
         }
 
         .disclaimer-text {
             color: #fbbf24;
             background: rgba(251, 191, 36, 0.1);
             border: 1px solid rgba(251, 191, 36, 0.3);
-            padding: 8px 12px;
+            padding: 10px 16px;
             border-radius: 8px;
-            font-size: 0.75rem;
+            text-align: center;
+            line-height: 1.5;
+            max-width: 80%;
         }
 
         /* Rating Modal */
@@ -695,10 +712,13 @@
                 width: 100%;
             }
 
-            .insights-footer {
-                flex-direction: column;
-                gap: 10px;
-                padding: 15px;
+            .disclaimer-footer {
+                margin-left: 70px;
+            }
+
+            .disclaimer-text {
+                max-width: 90%;
+                font-size: 0.7rem;
             }
         }
     </style>
@@ -753,10 +773,14 @@
                     <h1>Mutual Fund Advisor</h1>
                     <p>AI-powered insights for smarter investments</p>
                 </div>
-                <div class="status-indicator">
-                    <span class="status-dot" id="statusDot"></span>
-                    <span id="statusText">Connected</span>
-                    <span class="chat-badge" id="kbStatus">Loading...</span>
+                <div class="chat-controls">
+                    <button class="chat-control-btn" onclick="newChat()">+ New Chat</button>
+                    <button class="chat-control-btn" onclick="clearChat()">Clear Chat</button>
+                    <div class="status-indicator">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">Connected</span>
+                        <span class="chat-badge" id="kbStatus">Loading...</span>
+                    </div>
                 </div>
             </div>
 
@@ -781,11 +805,11 @@
         </div>
     </div>
 
-    <!-- Insights Footer -->
-    <div class="insights-footer">
-        <span class="insights-icon">💡</span>
-        <span class="insights-text">Market Insight: Indian equity markets showing strong momentum with large-cap funds performing well.</span>
-        <span class="disclaimer-text">⚠️ Mutual fund investments are subject to market risks. Read all scheme documents carefully.</span>
+    <!-- Disclaimer Footer (centered to chat window) -->
+    <div class="disclaimer-footer">
+        <div class="disclaimer-text">
+            ⚠️ <strong>Disclaimer:</strong> Mutual fund investments are subject to market risks. Past performance is not indicative of future returns. Please read all scheme-related documents carefully before investing.
+        </div>
     </div>
 
     <!-- Rating Modal -->
@@ -1036,6 +1060,11 @@
                 const data = await response.json();
                 hideTyping();
                 addMessage(data.response || data.error || 'Error');
+
+                // Auto-save chat after each exchange (if we have messages)
+                if (currentMessages.length >= 4) { // At least 2 exchanges
+                    await autoSaveChat();
+                }
             } catch (error) {
                 hideTyping();
                 addMessage('Connection error. Please try again.');
@@ -1043,6 +1072,70 @@
 
             sendButton.disabled = false;
             userInput.focus();
+        }
+
+        // Auto-save chat
+        async function autoSaveChat() {
+            if (currentMessages.length < 2) return;
+
+            const title = currentMessages.find(m => m.role === 'user')?.content?.substring(0, 40) + '...' || 'New Chat';
+
+            try {
+                const response = await fetch('/api/history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        messages: currentMessages,
+                        rating: 0
+                    })
+                });
+                const data = await response.json();
+                currentSessionId = data.session_id;
+
+                // Refresh history if we're on the chat panel
+                if (currentPanel === 'chat') {
+                    loadChatHistory();
+                }
+            } catch (error) {
+                console.error('Error auto-saving chat:', error);
+            }
+        }
+
+        // New chat
+        function newChat() {
+            if (currentMessages.length > 1 && confirm('Start a new chat? Current chat will be saved.')) {
+                currentMessages = [];
+                currentSessionId = null;
+                chatMessages.innerHTML = `
+                    <div class="message bot">
+                        <div class="message-content">
+                            Hello! I'm your Mutual Fund Advisor. Ask me about:
+                            <br>• Fund recommendations and comparisons
+                            <br>• Investment strategies and tax implications
+                            <br>• SEBI regulations and guidelines
+                            <br>• NAV, SIP, expense ratios, and more
+                        </div>
+                    </div>
+                `;
+                userInput.focus();
+            }
+        }
+
+        // Clear chat
+        function clearChat() {
+            if (confirm('Clear this chat? This cannot be undone.')) {
+                currentMessages = [];
+                currentSessionId = null;
+                chatMessages.innerHTML = `
+                    <div class="message bot">
+                        <div class="message-content">
+                            Chat cleared. How can I help you today?
+                        </div>
+                    </div>
+                `;
+                userInput.focus();
+            }
         }
 
         // Rating modal

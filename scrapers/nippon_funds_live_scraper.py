@@ -14,7 +14,7 @@ from typing import List, Dict
 from urllib.parse import urljoin
 
 # Constants
-OUTPUT_FILE = "data/nippon_live_schemes.csv"
+OUTPUT_FILE = "data/nippon_schemes.csv"  # Match chatbot expectation
 BASE_URL = "https://mf.nipponindiaim.com"
 FUNDS_URL = "https://mf.nipponindiaim.com/investor-services/navs"
 

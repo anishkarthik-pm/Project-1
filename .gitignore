@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data files (optional - uncomment to include in repo)
+# data/*.csv
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# Node modules (if any frontend build tools)
+node_modules/

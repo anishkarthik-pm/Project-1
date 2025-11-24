@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mutual Fund Advisor - RAG Chatbot</title>
+    <title>Mutual Fund Advisor - AI Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -12,351 +15,820 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .chat-container {
-            width: 100%;
-            max-width: 800px;
-            height: 90vh;
-            max-height: 700px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0e1612;
+            color: #ffffff;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+        /* Main Container */
+        .app-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar with vertical icons */
+        .sidebar {
+            width: 90px;
+            background: #111d18;
+            border-right: 1px solid #1b2e26;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #0e1612;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-icon-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 8px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .sidebar-icon-wrapper:hover {
+            background: rgba(146, 255, 72, 0.1);
+        }
+
+        .sidebar-icon-wrapper.active {
+            background: rgba(146, 255, 72, 0.15);
+        }
+
+        .sidebar-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(146, 255, 72, 0.1);
+            border: 1px solid #1b2e26;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            transition: all 0.3s;
+        }
+
+        .sidebar-icon-wrapper:hover .sidebar-icon {
+            background: rgba(146, 255, 72, 0.2);
+            box-shadow: 0 0 20px rgba(146, 255, 72, 0.3);
+            border-color: #92ff48;
+            transform: scale(1.1);
+        }
+
+        .sidebar-icon-wrapper.active .sidebar-icon {
+            background: rgba(146, 255, 72, 0.2);
+            border-color: #92ff48;
+        }
+
+        .sidebar-label {
+            font-size: 0.65rem;
+            color: #6b8075;
+            font-weight: 500;
             text-align: center;
+            transition: color 0.3s;
         }
 
-        .chat-header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 5px;
+        .sidebar-icon-wrapper:hover .sidebar-label,
+        .sidebar-icon-wrapper.active .sidebar-label {
+            color: #92ff48;
         }
 
-        .chat-header p {
+        /* Tooltip on hover */
+        .sidebar-icon-wrapper::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            margin-left: 10px;
+            background: #111d18;
+            border: 1px solid #92ff48;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        .sidebar-icon-wrapper:hover::after {
+            opacity: 1;
+        }
+
+        /* Dynamic Panel (1/4 width) */
+        .dynamic-panel {
+            width: 25%;
+            background: #111d18;
+            border-right: 1px solid #1b2e26;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 20px;
+            border-bottom: 1px solid #1b2e26;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, #92ff48 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .panel-subtitle {
             font-size: 0.85rem;
-            opacity: 0.9;
+            color: #6b8075;
         }
 
-        .status-bar {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 15px;
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* Chat History Items */
+        .history-item {
+            padding: 12px;
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            border-color: #92ff48;
+            box-shadow: 0 0 15px rgba(146, 255, 72, 0.1);
+            transform: translateX(5px);
+        }
+
+        .history-item.active {
+            border-color: #92ff48;
+            background: rgba(146, 255, 72, 0.05);
+        }
+
+        .history-title {
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-time {
             font-size: 0.75rem;
+            color: #6b8075;
+        }
+
+        /* Fund/FAQ Items */
+        .fund-item, .faq-item {
+            padding: 12px;
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .fund-item:hover, .faq-item:hover {
+            border-color: #92ff48;
+            box-shadow: 0 0 15px rgba(146, 255, 72, 0.1);
+        }
+
+        .fund-name {
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+
+        .fund-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #6b8075;
+        }
+
+        .fund-category {
+            color: #92ff48;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .faq-answer {
+            font-size: 0.8rem;
+            color: #6b8075;
+            display: none;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .faq-item.expanded .faq-answer {
+            display: block;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background: rgba(146, 255, 72, 0.15);
+            color: #92ff48;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+
+        /* Main Chat Area (3/4 width) */
+        .chat-area {
+            width: 75%;
+            display: flex;
+            flex-direction: column;
+            background: #0e1612;
+        }
+
+        .chat-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #1b2e26;
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+
+        .chat-header-left h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, #ffffff 0%, #92ff48 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .chat-header-left p {
+            font-size: 0.85rem;
+            color: #6b8075;
+        }
+
+        .chat-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-control-btn {
+            padding: 8px 16px;
+            background: rgba(146, 255, 72, 0.1);
+            border: 1px solid #1b2e26;
+            color: #92ff48;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .chat-control-btn:hover {
+            background: rgba(146, 255, 72, 0.2);
+            border-color: #92ff48;
+            transform: translateY(-2px);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: #6b8075;
         }
 
         .status-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-        }
-
-        .status-dot.online {
             background: #4ade80;
+            animation: pulse 2s infinite;
         }
 
-        .status-dot.offline {
-            background: #f87171;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .chat-badge {
+            background: rgba(146, 255, 72, 0.15);
+            color: #92ff48;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 10px;
         }
 
         .chat-messages {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            background: #f8fafc;
+            padding: 30px;
+            background: #0e1612;
         }
 
         .message {
-            margin-bottom: 15px;
+            margin-bottom: 16px;
             display: flex;
             flex-direction: column;
         }
 
-        .message.user {
-            align-items: flex-end;
-        }
-
-        .message.bot {
-            align-items: flex-start;
-        }
+        .message.user { align-items: flex-end; }
+        .message.bot { align-items: flex-start; }
 
         .message-content {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 18px;
-            line-height: 1.5;
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 16px;
+            line-height: 1.6;
             font-size: 0.95rem;
         }
 
         .message.user .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
+            color: #0e1612;
             border-bottom-right-radius: 4px;
         }
 
         .message.bot .message-content {
-            background: white;
-            color: #334155;
+            background: #111d18;
+            border: 1px solid #1b2e26;
+            color: #ffffff;
             border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .message-time {
             font-size: 0.7rem;
-            color: #94a3b8;
-            margin-top: 4px;
+            color: #6b8075;
+            margin-top: 6px;
             padding: 0 5px;
-        }
-
-        .chat-input-container {
-            padding: 15px 20px;
-            background: white;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .chat-input-form {
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 25px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .chat-input:focus {
-            border-color: #667eea;
-        }
-
-        .chat-input::placeholder {
-            color: #94a3b8;
-        }
-
-        .send-button {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .send-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .send-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
         }
 
         .typing-indicator {
             display: flex;
             gap: 4px;
-            padding: 12px 16px;
-            background: white;
-            border-radius: 18px;
+            padding: 14px 18px;
+            background: #111d18;
+            border: 1px solid #1b2e26;
+            border-radius: 16px;
             border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             width: fit-content;
         }
 
         .typing-indicator span {
             width: 8px;
             height: 8px;
-            background: #94a3b8;
+            background: #92ff48;
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out;
         }
 
-        .typing-indicator span:nth-child(1) {
-            animation-delay: -0.32s;
-        }
-
-        .typing-indicator span:nth-child(2) {
-            animation-delay: -0.16s;
-        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
 
         @keyframes bounce {
-            0%, 80%, 100% {
-                transform: scale(0);
-            }
-            40% {
-                transform: scale(1);
-            }
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
         }
 
-        .suggestions {
-            padding: 10px 20px;
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
+        .chat-input-container {
+            padding: 20px 30px;
+            background: #111d18;
+            border-top: 1px solid #1b2e26;
         }
 
-        .suggestions-title {
-            font-size: 0.75rem;
-            color: #64748b;
-            margin-bottom: 8px;
-        }
-
-        .suggestion-chips {
+        .chat-input-form {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
+            gap: 12px;
         }
 
-        .suggestion-chip {
-            padding: 6px 12px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            color: #475569;
+        .chat-input {
+            flex: 1;
+            padding: 14px 18px;
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .chat-input:focus {
+            border-color: #92ff48;
+            box-shadow: 0 0 15px rgba(146, 255, 72, 0.2);
+        }
+
+        .send-button {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
+            color: #0e1612;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(146, 255, 72, 0.4);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Disclaimer Footer - centered to entire screen */
+        .disclaimer-footer {
+            background: transparent;
+            border-top: 1px solid #1b2e26;
+            padding: 8px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+
+        .disclaimer-text {
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-align: center;
+            line-height: 1.3;
+            max-width: 85%;
+        }
+
+        /* Rating Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-content {
+            background: #111d18;
+            border: 1px solid #1b2e26;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #1b2e26;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 1.3rem;
+            color: #ffffff;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #6b8075;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #92ff48;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .star-btn {
+            background: none;
+            border: none;
+            font-size: 2.5rem;
+            cursor: pointer;
+            color: #1b2e26;
             transition: all 0.2s;
         }
 
-        .suggestion-chip:hover {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
+        .star-btn:hover, .star-btn.active {
+            color: #fbbf24;
+            transform: scale(1.1);
         }
 
-        /* Markdown-like formatting in responses */
-        .message-content ul, .message-content ol {
-            margin: 8px 0;
-            padding-left: 20px;
+        .rating-feedback {
+            width: 100%;
+            padding: 12px;
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            border-radius: 12px;
+            color: #ffffff;
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
         }
 
-        .message-content li {
-            margin: 4px 0;
+        .rating-feedback:focus {
+            border-color: #92ff48;
         }
 
-        .message-content strong {
+        .rating-submit {
+            width: 100%;
+            padding: 14px;
+            margin-top: 15px;
+            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
+            color: #0e1612;
+            border: none;
+            border-radius: 12px;
             font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
         }
 
-        .message-content code {
-            background: #f1f5f9;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.85em;
+        .rating-submit:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(146, 255, 72, 0.4);
         }
 
-        /* Scrollbar styling */
-        .chat-messages::-webkit-scrollbar {
+        .rating-display {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #6b8075;
+        }
+
+        .rating-stats {
+            font-size: 0.85rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
             width: 6px;
+            height: 6px;
         }
 
-        .chat-messages::-webkit-scrollbar-track {
+        ::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+        ::-webkit-scrollbar-thumb {
+            background: #1b2e26;
             border-radius: 3px;
         }
 
-        .chat-messages::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        ::-webkit-scrollbar-thumb:hover {
+            background: #92ff48;
         }
 
-        @media (max-width: 600px) {
-            body {
-                padding: 0;
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b8075;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .dynamic-panel {
+                width: 35%;
             }
 
-            .chat-container {
-                height: 100vh;
-                max-height: none;
-                border-radius: 0;
+            .chat-area {
+                width: 65%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 70px;
+                padding: 15px 0;
             }
 
-            .message-content {
+            .sidebar-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 1.2rem;
+            }
+
+            .sidebar-label {
+                font-size: 0.6rem;
+            }
+
+            .dynamic-panel {
+                position: fixed;
+                left: 70px;
+                top: 0;
+                height: 100%;
+                width: 300px;
+                z-index: 50;
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .dynamic-panel.open {
+                transform: translateX(0);
+            }
+
+            .chat-area {
+                width: 100%;
+            }
+
+            .disclaimer-text {
                 max-width: 90%;
+                font-size: 0.65rem;
+                padding: 5px 10px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>Mutual Fund Advisor</h1>
-            <p>Your AI-powered guide to Indian mutual funds</p>
-            <div class="status-bar">
-                <span>
-                    <span class="status-dot" id="statusDot"></span>
-                    <span id="statusText">Connecting...</span>
-                </span>
-                <span id="kbStatus">Loading data...</span>
+    <div class="app-container">
+        <!-- Sidebar with Vertical Icons -->
+        <div class="sidebar">
+            <div class="logo-icon">MF</div>
+
+            <div class="sidebar-icon-wrapper active" data-tooltip="Chat with AI Advisor" onclick="switchPanel('chat')">
+                <div class="sidebar-icon">💬</div>
+                <div class="sidebar-label">Chat</div>
+            </div>
+
+            <div class="sidebar-icon-wrapper" data-tooltip="View Covered Funds" onclick="switchPanel('funds')">
+                <div class="sidebar-icon">📈</div>
+                <div class="sidebar-label">Funds</div>
+            </div>
+
+            <div class="sidebar-icon-wrapper" data-tooltip="Frequently Asked Questions" onclick="switchPanel('faqs')">
+                <div class="sidebar-icon">❓</div>
+                <div class="sidebar-label">FAQs</div>
+            </div>
+
+            <div style="flex: 1;"></div>
+
+            <div class="sidebar-icon-wrapper" data-tooltip="Rate Your Experience" onclick="showRatingModal()">
+                <div class="sidebar-icon">⭐</div>
+                <div class="sidebar-label">Rate</div>
             </div>
         </div>
 
-        <div class="chat-messages" id="chatMessages">
-            <div class="message bot">
-                <div class="message-content">
-                    Hello! I'm your Mutual Fund Advisor. I can help you with:
-                    <ul>
-                        <li>Understanding mutual fund concepts (NAV, SIP, expense ratio)</li>
-                        <li>Information about specific schemes</li>
-                        <li>SEBI regulations and guidelines</li>
-                        <li>Tax implications of mutual funds</li>
-                    </ul>
-                    Ask me anything about mutual funds in India!
+        <!-- Dynamic Panel (1/3) -->
+        <div class="dynamic-panel" id="dynamicPanel">
+            <div class="panel-header">
+                <div class="panel-title" id="panelTitle">Chat History</div>
+                <div class="panel-subtitle" id="panelSubtitle">Your recent conversations</div>
+            </div>
+            <div class="panel-content" id="panelContent">
+                <div class="empty-state">
+                    <div class="empty-icon">💬</div>
+                    <p>No chat history yet</p>
                 </div>
-                <span class="message-time">Just now</span>
             </div>
         </div>
 
-        <div class="suggestions">
-            <div class="suggestions-title">Quick questions:</div>
-            <div class="suggestion-chips">
-                <span class="suggestion-chip" onclick="sendSuggestion(this)">What is NAV?</span>
-                <span class="suggestion-chip" onclick="sendSuggestion(this)">How are equity funds taxed?</span>
-                <span class="suggestion-chip" onclick="sendSuggestion(this)">What is SIP?</span>
-                <span class="suggestion-chip" onclick="sendSuggestion(this)">Explain expense ratio</span>
-                <span class="suggestion-chip" onclick="sendSuggestion(this)">ELSS tax benefits</span>
+        <!-- Main Chat Area (2/3) -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <h1>Mutual Fund Advisor</h1>
+                    <p>AI-powered insights for smarter investments</p>
+                </div>
+                <div class="chat-controls">
+                    <button class="chat-control-btn" onclick="newChat()">+ New Chat</button>
+                    <button class="chat-control-btn" onclick="clearChat()">Clear Chat</button>
+                    <div class="status-indicator">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">Connected</span>
+                        <span class="chat-badge" id="kbStatus">Loading...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot">
+                    <div class="message-content">
+                        Hello! I'm your Mutual Fund Advisor. Ask me about:
+                        <br>• Fund recommendations and comparisons
+                        <br>• Investment strategies and tax implications
+                        <br>• SEBI regulations and guidelines
+                        <br>• NAV, SIP, expense ratios, and more
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <form class="chat-input-form" onsubmit="sendMessage(event)">
+                    <input type="text" class="chat-input" id="userInput" placeholder="Ask about mutual funds..." autocomplete="off">
+                    <button type="submit" class="send-button" id="sendButton">Send</button>
+                </form>
             </div>
         </div>
+    </div>
 
-        <div class="chat-input-container">
-            <form class="chat-input-form" onsubmit="sendMessage(event)">
-                <input
-                    type="text"
-                    class="chat-input"
-                    id="userInput"
-                    placeholder="Ask about mutual funds..."
-                    autocomplete="off"
-                >
-                <button type="submit" class="send-button" id="sendButton">Send</button>
-            </form>
+    <!-- Disclaimer Footer (centered to full screen) -->
+    <div class="disclaimer-footer">
+        <div class="disclaimer-text">
+            ⚠️ Mutual funds are subject to market risks. Read all documents carefully.
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div class="modal" id="ratingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⭐ Rate Your Experience</h3>
+                <button class="modal-close" onclick="closeModal('ratingModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="rating-display">
+                    <div class="rating-stats" id="ratingStats">Share your feedback to help us improve</div>
+                </div>
+                <div class="rating-stars">
+                    <button class="star-btn" onclick="setRating(1)">★</button>
+                    <button class="star-btn" onclick="setRating(2)">★</button>
+                    <button class="star-btn" onclick="setRating(3)">★</button>
+                    <button class="star-btn" onclick="setRating(4)">★</button>
+                    <button class="star-btn" onclick="setRating(5)">★</button>
+                </div>
+                <textarea class="rating-feedback" id="ratingFeedback" placeholder="Share your feedback (optional)"></textarea>
+                <button class="rating-submit" onclick="submitRating()">Submit Rating</button>
+            </div>
         </div>
     </div>
 
@@ -364,145 +836,356 @@
         const chatMessages = document.getElementById('chatMessages');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        const kbStatus = document.getElementById('kbStatus');
+        const panelContent = document.getElementById('panelContent');
+        const panelTitle = document.getElementById('panelTitle');
+        const panelSubtitle = document.getElementById('panelSubtitle');
 
-        // Check API status on load
+        let currentMessages = [];
+        let currentSessionId = null;
+        let currentRating = 0;
+        let currentPanel = 'chat';
+
+        // Initialize
+        checkStatus();
+        loadChatHistory();
+        loadRatings();
+        userInput.focus();
+
+        // Check API status
         async function checkStatus() {
             try {
                 const response = await fetch('/api/status');
                 const data = await response.json();
+                document.getElementById('statusText').textContent = data.status === 'ok' ? 'Connected' : 'Error';
+                document.getElementById('kbStatus').textContent = `${data.knowledge_base.total} records`;
+            } catch (error) {
+                document.getElementById('statusText').textContent = 'Offline';
+            }
+        }
 
-                if (data.status === 'ok') {
-                    statusDot.className = 'status-dot online';
-                    statusText.textContent = 'Online';
-                    kbStatus.textContent = `${data.knowledge_base.total} records loaded`;
-                } else {
-                    statusDot.className = 'status-dot offline';
-                    statusText.textContent = 'Error';
+        // Switch panel view
+        function switchPanel(panel) {
+            currentPanel = panel;
+
+            // Update active icon
+            document.querySelectorAll('.sidebar-icon-wrapper').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            switch(panel) {
+                case 'chat':
+                    panelTitle.textContent = 'Chat History';
+                    panelSubtitle.textContent = 'Your recent conversations';
+                    loadChatHistory();
+                    break;
+                case 'funds':
+                    panelTitle.textContent = 'Covered Funds';
+                    panelSubtitle.textContent = 'Browse available mutual funds';
+                    loadFunds();
+                    break;
+                case 'faqs':
+                    panelTitle.textContent = 'FAQs';
+                    panelSubtitle.textContent = 'Frequently asked questions';
+                    loadFAQs();
+                    break;
+            }
+        }
+
+        // Load chat history
+        async function loadChatHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+
+                if (data.history.length === 0) {
+                    panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>No chat history yet</p></div>';
+                    return;
+                }
+
+                panelContent.innerHTML = data.history.map(session => `
+                    <div class="history-item" onclick="loadSession('${session.id}')">
+                        <div class="history-title">${session.title}</div>
+                        <div class="history-time">${new Date(session.timestamp).toLocaleDateString()}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading history:', error);
+                panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>Error loading history</p></div>';
+            }
+        }
+
+        // Load session
+        async function loadSession(sessionId) {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                const session = data.history.find(s => s.id === sessionId);
+
+                if (session) {
+                    chatMessages.innerHTML = '';
+                    session.messages.forEach(msg => {
+                        addMessage(msg.content, msg.role === 'user');
+                    });
+                    currentMessages = session.messages;
+                    currentSessionId = sessionId;
                 }
             } catch (error) {
-                statusDot.className = 'status-dot offline';
-                statusText.textContent = 'Offline';
-                kbStatus.textContent = 'Connection failed';
+                console.error('Error loading session:', error);
+            }
+        }
+
+        // Load funds
+        async function loadFunds() {
+            try {
+                const response = await fetch('/api/funds');
+                const data = await response.json();
+
+                if (data.funds.length === 0) {
+                    panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No funds available</p></div>';
+                    return;
+                }
+
+                panelContent.innerHTML = data.funds.map(f => `
+                    <div class="fund-item">
+                        <div class="fund-name">${f.name}</div>
+                        <div class="fund-details">
+                            <span class="fund-category">${f.category}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading funds:', error);
+                panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>Error loading funds</p></div>';
+            }
+        }
+
+        // Load FAQs
+        async function loadFAQs() {
+            try {
+                const response = await fetch('/api/faqs');
+                const data = await response.json();
+
+                if (data.faqs.length === 0) {
+                    panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">❓</div><p>No FAQs available</p></div>';
+                    return;
+                }
+
+                panelContent.innerHTML = data.faqs.map(faq => `
+                    <div class="faq-item" onclick="this.classList.toggle('expanded')">
+                        <div class="faq-question">${faq.question}</div>
+                        <div class="faq-answer">${faq.answer}</div>
+                        <span class="category-badge">${faq.category}</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading FAQs:', error);
+                panelContent.innerHTML = '<div class="empty-state"><div class="empty-icon">❓</div><p>Error loading FAQs</p></div>';
+            }
+        }
+
+        // Load ratings
+        async function loadRatings() {
+            try {
+                const response = await fetch('/api/ratings');
+                const data = await response.json();
+                if (data.total > 0) {
+                    document.getElementById('ratingStats').textContent = `Average Rating: ${data.average}/5 stars (${data.total} ratings)`;
+                }
+            } catch (error) {
+                console.error('Error loading ratings:', error);
             }
         }
 
         // Format time
-        function formatTime() {
-            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        function formatTime(date) {
+            return new Date(date || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
-        // Add message to chat
+        // Add message
         function addMessage(content, isUser = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            const div = document.createElement('div');
+            div.className = `message ${isUser ? 'user' : 'bot'}`;
 
-            // Format content (basic markdown-like)
-            let formattedContent = content
+            let formatted = content
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/`(.*?)`/g, '<code>$1</code>')
-                .replace(/\n- /g, '\n<li>')
-                .replace(/\n\* /g, '\n<li>');
+                .replace(/\n- /g, '<br>• ')
+                .replace(/\n/g, '<br>');
 
-            // Convert bullet lists
-            if (formattedContent.includes('<li>')) {
-                formattedContent = formattedContent.replace(/(<li>.*?)(?=<li>|$)/gs, '$1</li>');
-                formattedContent = '<ul>' + formattedContent + '</ul>';
-            }
-
-            // Convert newlines to breaks
-            formattedContent = formattedContent.replace(/\n/g, '<br>');
-
-            messageDiv.innerHTML = `
-                <div class="message-content">${formattedContent}</div>
+            div.innerHTML = `
+                <div class="message-content">${formatted}</div>
                 <span class="message-time">${formatTime()}</span>
             `;
 
-            chatMessages.appendChild(messageDiv);
+            chatMessages.appendChild(div);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
-            return messageDiv;
+            currentMessages.push({ role: isUser ? 'user' : 'bot', content, time: new Date().toISOString() });
         }
 
-        // Show typing indicator
+        // Show typing
         function showTyping() {
-            const typingDiv = document.createElement('div');
-            typingDiv.className = 'message bot';
-            typingDiv.id = 'typingIndicator';
-            typingDiv.innerHTML = `
-                <div class="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            `;
-            chatMessages.appendChild(typingDiv);
+            const div = document.createElement('div');
+            div.className = 'message bot';
+            div.id = 'typingIndicator';
+            div.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+            chatMessages.appendChild(div);
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        // Remove typing indicator
         function hideTyping() {
-            const typing = document.getElementById('typingIndicator');
-            if (typing) typing.remove();
+            const el = document.getElementById('typingIndicator');
+            if (el) el.remove();
         }
 
         // Send message
         async function sendMessage(event) {
             event.preventDefault();
-
             const message = userInput.value.trim();
             if (!message) return;
 
-            // Clear input and disable button
             userInput.value = '';
             sendButton.disabled = true;
-
-            // Add user message
             addMessage(message, true);
-
-            // Show typing indicator
             showTyping();
 
             try {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message })
                 });
-
                 const data = await response.json();
-
-                // Hide typing and show response
                 hideTyping();
-
-                if (data.response) {
-                    addMessage(data.response);
-                } else if (data.error) {
-                    addMessage(`Error: ${data.error}`);
-                }
+                addMessage(data.response || data.error || 'Error');
             } catch (error) {
                 hideTyping();
-                addMessage('Sorry, there was an error connecting to the server. Please try again.');
+                addMessage('Connection error. Please try again.');
             }
 
             sendButton.disabled = false;
             userInput.focus();
         }
 
-        // Send suggestion
-        function sendSuggestion(element) {
-            userInput.value = element.textContent;
-            sendMessage(new Event('submit'));
+        // Save current chat
+        async function saveCurrentChat() {
+            if (currentMessages.length < 2) return;
+
+            const title = currentMessages.find(m => m.role === 'user')?.content?.substring(0, 40) + '...' || 'New Chat';
+
+            try {
+                const response = await fetch('/api/history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        messages: currentMessages,
+                        rating: 0
+                    })
+                });
+                const data = await response.json();
+                currentSessionId = data.session_id;
+
+                // Refresh history if we're on the chat panel
+                if (currentPanel === 'chat') {
+                    loadChatHistory();
+                }
+            } catch (error) {
+                console.error('Error saving chat:', error);
+            }
         }
 
-        // Initialize
-        checkStatus();
-        userInput.focus();
+        // New chat - save current chat before starting new one
+        async function newChat() {
+            if (currentMessages.length > 1) {
+                if (confirm('Start a new chat? Current chat will be saved.')) {
+                    // Save current chat
+                    await saveCurrentChat();
+
+                    // Start new chat
+                    currentMessages = [];
+                    currentSessionId = null;
+                    chatMessages.innerHTML = `
+                        <div class="message bot">
+                            <div class="message-content">
+                                Hello! I'm your Mutual Fund Advisor. Ask me about:
+                                <br>• Fund recommendations and comparisons
+                                <br>• Investment strategies and tax implications
+                                <br>• SEBI regulations and guidelines
+                                <br>• NAV, SIP, expense ratios, and more
+                            </div>
+                        </div>
+                    `;
+                    userInput.focus();
+                }
+            }
+        }
+
+        // Clear chat
+        function clearChat() {
+            if (confirm('Clear this chat? This cannot be undone.')) {
+                currentMessages = [];
+                currentSessionId = null;
+                chatMessages.innerHTML = `
+                    <div class="message bot">
+                        <div class="message-content">
+                            Chat cleared. How can I help you today?
+                        </div>
+                    </div>
+                `;
+                userInput.focus();
+            }
+        }
+
+        // Rating modal
+        function showRatingModal() {
+            document.getElementById('ratingModal').classList.add('active');
+            currentRating = 0;
+            document.querySelectorAll('.star-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('ratingFeedback').value = '';
+            loadRatings();
+        }
+
+        function setRating(rating) {
+            currentRating = rating;
+            document.querySelectorAll('.star-btn').forEach((btn, i) => {
+                btn.classList.toggle('active', i < rating);
+            });
+        }
+
+        async function submitRating() {
+            if (currentRating === 0) {
+                alert('Please select a rating');
+                return;
+            }
+
+            try {
+                await fetch('/api/rate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        rating: currentRating,
+                        feedback: document.getElementById('ratingFeedback').value
+                    })
+                });
+                closeModal('ratingModal');
+                alert('Thank you for your feedback!');
+                loadRatings();
+            } catch (error) {
+                alert('Error submitting rating');
+            }
+        }
+
+        // Modal helpers
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Close modals on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.classList.remove('active');
+            });
+        });
 
         // Refresh status every 30 seconds
         setInterval(checkStatus, 30000);

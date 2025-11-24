@@ -27,11 +27,35 @@ CORS(app)
 MODEL_NAME = "gemini-2.0-flash"
 DATA_DIR = "data"
 CHAT_HISTORY_FILE = "data/chat_history.json"
+RATINGS_FILE = "data/ratings.json"
+
+# Fallback sample data for demonstration
+SAMPLE_FUNDS = [
+    {'scheme_name': 'Nippon India Large Cap Fund', 'category': 'Large Cap', 'nav': '52.30', 'expense_ratio': '1.98%', 'riskometer': 'Moderately High'},
+    {'scheme_name': 'Nippon India Small Cap Fund', 'category': 'Small Cap', 'nav': '98.75', 'expense_ratio': '2.10%', 'riskometer': 'Very High'},
+    {'scheme_name': 'Nippon India Flexi Cap Fund', 'category': 'Flexi Cap', 'nav': '65.20', 'expense_ratio': '1.85%', 'riskometer': 'Very High'},
+    {'scheme_name': 'Nippon India Multi Cap Fund', 'category': 'Multi Cap', 'nav': '145.80', 'expense_ratio': '1.95%', 'riskometer': 'Very High'},
+    {'scheme_name': 'Nippon India Balanced Advantage Fund', 'category': 'Hybrid', 'nav': '42.15', 'expense_ratio': '1.05%', 'riskometer': 'Moderate'},
+    {'scheme_name': 'Nippon India Liquid Fund', 'category': 'Liquid', 'nav': '5180.25', 'expense_ratio': '0.25%', 'riskometer': 'Low'},
+    {'scheme_name': 'Nippon India Tax Saver (ELSS) Fund', 'category': 'ELSS', 'nav': '76.45', 'expense_ratio': '1.80%', 'riskometer': 'Very High'},
+    {'scheme_name': 'Nippon India Index Fund - Sensex Plan', 'category': 'Index', 'nav': '68.90', 'expense_ratio': '0.75%', 'riskometer': 'Very High'},
+]
+
+SAMPLE_FAQS = [
+    {'question': 'What is a mutual fund?', 'answer': 'A mutual fund is a professionally managed investment vehicle that pools money from multiple investors to invest in securities like stocks, bonds, and other assets.', 'category': 'Basics', 'source': 'AMFI'},
+    {'question': 'What is NAV?', 'answer': 'Net Asset Value (NAV) is the per-unit market value of a mutual fund scheme. It is calculated by dividing the total value of all assets in the portfolio minus liabilities by the number of outstanding units.', 'category': 'Basics', 'source': 'SEBI'},
+    {'question': 'What is SIP?', 'answer': 'Systematic Investment Plan (SIP) is a method of investing a fixed sum regularly in a mutual fund scheme. It helps in rupee cost averaging and builds investment discipline.', 'category': 'Investment', 'source': 'AMFI'},
+    {'question': 'What is expense ratio?', 'answer': 'Expense ratio is the annual fee charged by mutual funds to manage your money. It includes management fees, administrative costs, and other operational expenses, expressed as a percentage of assets.', 'category': 'Costs', 'source': 'SEBI'},
+    {'question': 'What are ELSS funds?', 'answer': 'Equity Linked Savings Scheme (ELSS) are tax-saving mutual funds with a lock-in period of 3 years. Investments up to ₹1.5 lakh per year qualify for tax deduction under Section 80C.', 'category': 'Tax', 'source': 'Income Tax Act'},
+    {'question': 'What is the difference between growth and dividend options?', 'answer': 'In growth option, profits are reinvested and reflected in NAV appreciation. In dividend option, profits are distributed periodically to investors, reducing the NAV accordingly.', 'category': 'Investment', 'source': 'AMFI'},
+    {'question': 'What is exit load?', 'answer': 'Exit load is a fee charged when you redeem your mutual fund units before a specified period. It discourages early withdrawals and is typically 1% if redeemed within one year.', 'category': 'Costs', 'source': 'SEBI'},
+    {'question': 'How are mutual funds taxed?', 'answer': 'Equity funds: LTCG (>1 year) taxed at 10% above ₹1 lakh, STCG at 15%. Debt funds: LTCG (>3 years) at 20% with indexation, STCG at slab rates.', 'category': 'Tax', 'source': 'Income Tax Act'},
+]
 
 # Global variables for loaded data
 knowledge_base = {
-    'faqs': [],
-    'schemes': [],
+    'faqs': SAMPLE_FAQS.copy(),
+    'schemes': SAMPLE_FUNDS.copy(),
     'guidelines': [],
     'basics': []
 }
@@ -364,6 +388,14 @@ def rate_conversation():
             session['rating'] = data.get('rating')
             break
 
+    # Save ratings to file
+    try:
+        os.makedirs(os.path.dirname(RATINGS_FILE), exist_ok=True)
+        with open(RATINGS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(ratings, f, indent=2)
+    except Exception as e:
+        print(f"Error saving ratings: {e}")
+
     return jsonify({'success': True, 'rating_id': rating_entry['id']})
 
 
@@ -391,6 +423,19 @@ def load_chat_history():
             chat_history = []
 
 
+def load_ratings():
+    """Load ratings from file."""
+    global ratings
+    if os.path.exists(RATINGS_FILE):
+        try:
+            with open(RATINGS_FILE, 'r', encoding='utf-8') as f:
+                ratings = json.load(f)
+            print(f"  Loaded {len(ratings)} ratings")
+        except Exception as e:
+            print(f"  Error loading ratings: {e}")
+            ratings = []
+
+
 def main():
     """Main function to run the chatbot."""
     print("\n" + "="*60)
@@ -407,6 +452,9 @@ def main():
 
     # Load chat history
     load_chat_history()
+
+    # Load ratings
+    load_ratings()
 
     # Get port from environment variable (for Railway/Heroku deployment)
     port = int(os.environ.get('PORT', 5000))
@@ -425,6 +473,7 @@ def main():
 load_knowledge_base()
 initialize_gemini()
 load_chat_history()
+load_ratings()
 
 if __name__ == '__main__':
     main()

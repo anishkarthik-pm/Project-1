@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mutual Fund Advisor - RAG Chatbot</title>
+    <title>Mutual Fund Advisor - Fintech Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -12,212 +15,193 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background: #f0f2f5;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #0e1612;
+            color: #ffffff;
             height: 100vh;
             display: flex;
+            overflow: hidden;
         }
 
-        /* Sidebar */
+        /* Sidebar with vertical icons */
         .sidebar {
-            width: 280px;
-            background: #1e1e2e;
-            color: white;
+            width: 80px;
+            background: #111d18;
+            border-right: 1px solid #1b2e26;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s;
+            align-items: center;
+            padding: 20px 0;
+            gap: 30px;
         }
 
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid #333;
+        .sidebar-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(146, 255, 72, 0.1);
+            border: 1px solid #1b2e26;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
         }
 
-        .sidebar-header h2 {
-            font-size: 1.2rem;
+        .sidebar-icon:hover {
+            background: rgba(146, 255, 72, 0.2);
+            box-shadow: 0 0 20px rgba(146, 255, 72, 0.3);
+            border-color: #92ff48;
+            transform: translateX(5px);
+        }
+
+        .sidebar-icon.active {
+            background: rgba(146, 255, 72, 0.2);
+            border-color: #92ff48;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #0e1612;
             margin-bottom: 10px;
         }
 
-        .new-chat-btn {
-            width: 100%;
-            padding: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s;
-        }
-
-        .new-chat-btn:hover {
-            transform: scale(1.02);
-        }
-
-        .sidebar-content {
+        /* Main Content Area */
+        .main-content {
             flex: 1;
+            padding: 30px;
             overflow-y: auto;
-            padding: 10px;
         }
 
-        .history-item {
-            padding: 12px;
-            border-radius: 8px;
+        .dashboard-header {
+            margin-bottom: 30px;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, #92ff48 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dashboard-header p {
+            color: #6b8075;
+            font-size: 0.95rem;
+        }
+
+        /* Bento Grid 3x3 Layout */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 20px;
+            height: calc(100vh - 180px);
+        }
+
+        .bento-card {
+            background: #111d18;
+            border: 1px solid #1b2e26;
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s;
             cursor: pointer;
-            margin-bottom: 5px;
-            transition: background 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .history-item:hover {
-            background: #333;
-        }
-
-        .history-item.active {
-            background: #444;
-        }
-
-        .history-title {
-            font-size: 0.85rem;
-            white-space: nowrap;
+            position: relative;
             overflow: hidden;
-            text-overflow: ellipsis;
-            flex: 1;
         }
 
-        .history-time {
-            font-size: 0.7rem;
-            color: #888;
+        .bento-card:hover {
+            border-color: #92ff48;
+            box-shadow: 0 0 30px rgba(146, 255, 72, 0.2);
+            transform: translateY(-2px);
         }
 
-        .history-delete {
+        .bento-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #92ff48 0%, #00ff88 100%);
             opacity: 0;
-            background: none;
-            border: none;
-            color: #f87171;
-            cursor: pointer;
-            padding: 4px;
-            font-size: 1rem;
+            transition: opacity 0.3s;
         }
 
-        .history-item:hover .history-delete {
+        .bento-card:hover::before {
             opacity: 1;
         }
 
-        .sidebar-footer {
-            padding: 15px;
-            border-top: 1px solid #333;
+        /* Specific card sizes */
+        .card-large {
+            grid-column: span 2;
+            grid-row: span 2;
         }
 
-        .sidebar-btn {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 8px;
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            text-align: left;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .card-medium {
+            grid-column: span 1;
+            grid-row: span 2;
         }
 
-        .sidebar-btn:hover {
-            background: #444;
+        .card-small {
+            grid-column: span 1;
+            grid-row: span 1;
         }
 
-        /* Main Chat Area */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .chat-container {
-            flex: 1;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
+        .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 16px;
         }
 
-        .chat-header-left h1 {
-            font-size: 1.3rem;
-            margin-bottom: 3px;
-        }
-
-        .chat-header-left p {
-            font-size: 0.8rem;
-            opacity: 0.9;
-        }
-
-        .chat-header-right {
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
             display: flex;
+            align-items: center;
             gap: 10px;
         }
 
-        .header-btn {
-            padding: 8px 12px;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: background 0.2s;
+        .card-icon {
+            font-size: 1.3rem;
         }
 
-        .header-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .status-bar {
-            background: rgba(0, 0, 0, 0.1);
-            padding: 8px 20px;
+        .card-badge {
+            background: rgba(146, 255, 72, 0.15);
+            color: #92ff48;
+            padding: 4px 12px;
+            border-radius: 20px;
             font-size: 0.75rem;
-            display: flex;
-            justify-content: space-between;
+            font-weight: 600;
         }
 
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-        }
-
-        .status-dot.online { background: #4ade80; }
-        .status-dot.offline { background: #f87171; }
-
-        .chat-messages {
-            flex: 1;
+        .card-content {
+            height: calc(100% - 50px);
             overflow-y: auto;
-            padding: 20px;
-            background: #f8fafc;
+        }
+
+        /* Chat Card (Large - Main Feature) */
+        .chat-messages {
+            height: calc(100% - 120px);
+            overflow-y: auto;
+            margin-bottom: 16px;
+            padding-right: 10px;
         }
 
         .message {
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             display: flex;
             flex-direction: column;
         }
@@ -228,70 +212,244 @@
         .message-content {
             max-width: 80%;
             padding: 12px 16px;
-            border-radius: 18px;
+            border-radius: 16px;
             line-height: 1.5;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .message.user .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
+            color: #0e1612;
             border-bottom-right-radius: 4px;
         }
 
         .message.bot .message-content {
-            background: white;
-            color: #334155;
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            color: #ffffff;
             border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .message-time {
             font-size: 0.7rem;
-            color: #94a3b8;
+            color: #6b8075;
             margin-top: 4px;
             padding: 0 5px;
         }
 
-        .message-actions {
+        .chat-input-form {
             display: flex;
             gap: 10px;
-            margin-top: 8px;
         }
 
-        .rate-btn {
-            background: none;
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .chat-input:focus {
+            border-color: #92ff48;
+            box-shadow: 0 0 15px rgba(146, 255, 72, 0.2);
+        }
+
+        .send-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
+            color: #0e1612;
             border: none;
+            border-radius: 12px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(146, 255, 72, 0.4);
+        }
+
+        .send-button:disabled {
             opacity: 0.5;
-            transition: opacity 0.2s, transform 0.2s;
+            cursor: not-allowed;
         }
 
-        .rate-btn:hover {
-            opacity: 1;
-            transform: scale(1.2);
+        /* Fund List Items */
+        .fund-item, .faq-item, .insight-item {
+            padding: 12px;
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
         }
 
-        .rate-btn.active {
-            opacity: 1;
+        .fund-item:hover, .faq-item:hover, .insight-item:hover {
+            border-color: #92ff48;
+            box-shadow: 0 0 15px rgba(146, 255, 72, 0.1);
         }
 
+        .fund-name {
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+
+        .fund-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #6b8075;
+        }
+
+        .fund-category {
+            color: #92ff48;
+        }
+
+        .fund-nav {
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        /* FAQ Items */
+        .faq-question {
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .faq-answer {
+            font-size: 0.8rem;
+            color: #6b8075;
+            display: none;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .faq-item.expanded .faq-answer {
+            display: block;
+        }
+
+        /* Trending Badge */
+        .trending-badge {
+            display: inline-block;
+            background: rgba(146, 255, 72, 0.15);
+            color: #92ff48;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        /* Stats Display */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-item {
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #92ff48;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #6b8075;
+            text-transform: uppercase;
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            font-size: 0.8rem;
+        }
+
+        .comparison-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #1b2e26;
+        }
+
+        .comparison-label {
+            color: #6b8075;
+        }
+
+        .comparison-value {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Rating Stars */
+        .rating-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .stars {
+            color: #fbbf24;
+            font-size: 1.2rem;
+        }
+
+        .rating-text {
+            font-size: 0.85rem;
+            color: #6b8075;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 0.75rem;
+            color: #fbbf24;
+            line-height: 1.5;
+        }
+
+        .disclaimer-icon {
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        /* Typing Indicator */
         .typing-indicator {
             display: flex;
             gap: 4px;
             padding: 12px 16px;
-            background: white;
-            border-radius: 18px;
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            border-radius: 16px;
             border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             width: fit-content;
         }
 
         .typing-indicator span {
             width: 8px;
             height: 8px;
-            background: #94a3b8;
+            background: #92ff48;
             border-radius: 50%;
             animation: bounce 1.4s infinite ease-in-out;
         }
@@ -304,43 +462,6 @@
             40% { transform: scale(1); }
         }
 
-        .chat-input-container {
-            padding: 15px 20px;
-            background: white;
-            border-top: 1px solid #e2e8f0;
-        }
-
-        .chat-input-form {
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 25px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .chat-input:focus { border-color: #667eea; }
-
-        .send-button {
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .send-button:hover { transform: translateY(-2px); }
-        .send-button:disabled { opacity: 0.6; cursor: not-allowed; }
-
         /* Modal */
         .modal {
             display: none;
@@ -349,19 +470,21 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            backdrop-filter: blur(10px);
         }
 
         .modal.active { display: flex; }
 
         .modal-content {
-            background: white;
-            border-radius: 16px;
+            background: #111d18;
+            border: 1px solid #1b2e26;
+            border-radius: 20px;
             width: 90%;
-            max-width: 600px;
+            max-width: 700px;
             max-height: 80vh;
             overflow: hidden;
             display: flex;
@@ -369,63 +492,35 @@
         }
 
         .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 24px;
+            border-bottom: 1px solid #1b2e26;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .modal-header h3 { font-size: 1.2rem; }
+        .modal-header h3 {
+            font-size: 1.3rem;
+            color: #ffffff;
+        }
 
         .modal-close {
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             cursor: pointer;
-            color: #64748b;
+            color: #6b8075;
+            transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #92ff48;
         }
 
         .modal-body {
-            padding: 20px;
+            padding: 24px;
             overflow-y: auto;
             flex: 1;
-        }
-
-        .fund-item, .faq-item {
-            padding: 12px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-
-        .fund-item:last-child, .faq-item:last-child { border-bottom: none; }
-
-        .fund-name { font-weight: 600; color: #334155; }
-        .fund-category { font-size: 0.8rem; color: #64748b; }
-
-        .faq-question {
-            font-weight: 600;
-            color: #334155;
-            margin-bottom: 5px;
-            cursor: pointer;
-        }
-
-        .faq-question:hover { color: #667eea; }
-
-        .faq-answer {
-            font-size: 0.85rem;
-            color: #64748b;
-            display: none;
-        }
-
-        .faq-item.expanded .faq-answer { display: block; }
-
-        .faq-category {
-            font-size: 0.75rem;
-            background: #f1f5f9;
-            padding: 2px 8px;
-            border-radius: 4px;
-            display: inline-block;
-            margin-top: 5px;
         }
 
         /* Rating Modal */
@@ -439,137 +534,332 @@
         .star-btn {
             background: none;
             border: none;
-            font-size: 2rem;
+            font-size: 2.5rem;
             cursor: pointer;
-            color: #e2e8f0;
-            transition: color 0.2s, transform 0.2s;
+            color: #1b2e26;
+            transition: all 0.2s;
         }
 
-        .star-btn:hover, .star-btn.active { color: #fbbf24; transform: scale(1.1); }
+        .star-btn:hover, .star-btn.active {
+            color: #fbbf24;
+            transform: scale(1.1);
+        }
 
         .rating-feedback {
             width: 100%;
             padding: 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
+            background: #0e1612;
+            border: 1px solid #1b2e26;
+            border-radius: 12px;
+            color: #ffffff;
             resize: vertical;
-            min-height: 80px;
-            font-family: inherit;
+            min-height: 100px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .rating-feedback:focus {
+            border-color: #92ff48;
         }
 
         .rating-submit {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             margin-top: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            background: linear-gradient(135deg, #92ff48 0%, #00ff88 100%);
+            color: #0e1612;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .rating-submit:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(146, 255, 72, 0.4);
         }
 
         /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
 
-        /* Mobile */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                left: 0;
-                top: 0;
-                height: 100%;
-                transform: translateX(-100%);
-                z-index: 100;
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1b2e26;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #92ff48;
+        }
+
+        /* Status Indicator */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: #6b8075;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 1200px) {
+            .bento-grid {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: auto;
             }
 
-            .sidebar.open { transform: translateX(0); }
+            .card-large {
+                grid-column: span 2;
+                grid-row: span 1;
+            }
 
-            .main-content { padding: 10px; }
-
-            .mobile-toggle {
-                display: block;
-                position: fixed;
-                top: 10px;
-                left: 10px;
-                z-index: 50;
-                padding: 10px;
-                background: #1e1e2e;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
+            .card-medium {
+                grid-column: span 1;
+                grid-row: span 1;
             }
         }
 
-        @media (min-width: 769px) {
-            .mobile-toggle { display: none; }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+                padding: 15px 0;
+            }
+
+            .sidebar-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.2rem;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .bento-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .card-large, .card-medium, .card-small {
+                grid-column: span 1;
+                grid-row: span 1;
+            }
+
+            .dashboard-header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b8075;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
         }
     </style>
 </head>
 <body>
-    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
-
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <h2>Chat History</h2>
-            <button class="new-chat-btn" onclick="newChat()">+ New Chat</button>
-        </div>
-        <div class="sidebar-content" id="historyList">
-            <p style="color: #666; font-size: 0.85rem; padding: 10px;">No chat history yet</p>
-        </div>
-        <div class="sidebar-footer">
-            <button class="sidebar-btn" onclick="showFundsModal()">📊 Fund Names</button>
-            <button class="sidebar-btn" onclick="showFaqsModal()">❓ FAQs</button>
-            <button class="sidebar-btn" onclick="clearAllHistory()">🗑️ Clear History</button>
-        </div>
+    <!-- Sidebar with Vertical Icons -->
+    <div class="sidebar">
+        <div class="logo-icon">MF</div>
+        <div class="sidebar-icon active" onclick="showView('dashboard')" title="Dashboard">📊</div>
+        <div class="sidebar-icon" onclick="showView('chat')" title="Chat">💬</div>
+        <div class="sidebar-icon" onclick="showFundsModal()" title="Funds">📈</div>
+        <div class="sidebar-icon" onclick="showFaqsModal()" title="FAQs">❓</div>
+        <div class="sidebar-icon" onclick="showRatingModal()" title="Rate">⭐</div>
+        <div style="flex: 1;"></div>
+        <div class="sidebar-icon" onclick="toggleTheme()" title="Settings">⚙️</div>
     </div>
 
     <!-- Main Content -->
     <div class="main-content">
-        <div class="chat-container">
-            <div class="chat-header">
-                <div class="chat-header-left">
-                    <h1>Mutual Fund Advisor</h1>
-                    <p>AI-powered guide to Indian mutual funds</p>
-                </div>
-                <div class="chat-header-right">
-                    <button class="header-btn" onclick="clearChat()">Clear Chat</button>
-                    <button class="header-btn" onclick="saveChat()">Save Chat</button>
-                    <button class="header-btn" onclick="showRatingModal()">⭐ Rate</button>
-                </div>
+        <div class="dashboard-header">
+            <h1>Mutual Fund Advisor</h1>
+            <p>AI-powered insights for smarter investments</p>
+            <div class="status-indicator" style="margin-top: 8px;">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">Connected</span>
+                <span style="margin-left: 10px;" id="kbStatus">Loading...</span>
             </div>
-            <div class="status-bar">
-                <span>
-                    <span class="status-dot" id="statusDot"></span>
-                    <span id="statusText">Connecting...</span>
-                </span>
-                <span id="kbStatus">Loading...</span>
+        </div>
+
+        <!-- Bento Grid 3x3 Layout -->
+        <div class="bento-grid">
+            <!-- Chat with Advisor (Large Card) -->
+            <div class="bento-card card-large">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="card-icon">💬</span>
+                        Chat with Advisor
+                    </div>
+                    <span class="card-badge" id="chatStatus">AI Ready</span>
+                </div>
+                <div class="card-content">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message bot">
+                            <div class="message-content">
+                                Hello! I'm your Mutual Fund Advisor. Ask me about:
+                                <br>• Fund recommendations
+                                <br>• Investment strategies
+                                <br>• Tax implications
+                                <br>• SEBI regulations
+                            </div>
+                        </div>
+                    </div>
+                    <form class="chat-input-form" onsubmit="sendMessage(event)">
+                        <input type="text" class="chat-input" id="userInput" placeholder="Ask about mutual funds..." autocomplete="off">
+                        <button type="submit" class="send-button" id="sendButton">Send</button>
+                    </form>
+                </div>
             </div>
 
-            <div class="chat-messages" id="chatMessages">
-                <div class="message bot">
-                    <div class="message-content">
-                        Hello! I'm your Mutual Fund Advisor. I can help you with:
-                        <ul>
-                            <li>Understanding mutual fund concepts</li>
-                            <li>Information about specific schemes</li>
-                            <li>SEBI regulations and guidelines</li>
-                            <li>Tax implications</li>
-                        </ul>
-                        Ask me anything!
+            <!-- Fund Explorer (Medium Card) -->
+            <div class="bento-card card-medium">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="card-icon">🔍</span>
+                        Fund Explorer
+                    </div>
+                    <span class="card-badge" id="fundsCount">0</span>
+                </div>
+                <div class="card-content" id="fundExplorer">
+                    <div class="empty-state">
+                        <div class="empty-icon">📊</div>
+                        <p>Loading funds...</p>
                     </div>
                 </div>
             </div>
 
-            <div class="chat-input-container">
-                <form class="chat-input-form" onsubmit="sendMessage(event)">
-                    <input type="text" class="chat-input" id="userInput" placeholder="Ask about mutual funds..." autocomplete="off">
-                    <button type="submit" class="send-button" id="sendButton">Send</button>
-                </form>
+            <!-- Trending Funds (Small Card) -->
+            <div class="bento-card card-small">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="card-icon">🔥</span>
+                        Trending
+                    </div>
+                </div>
+                <div class="card-content" id="trendingFunds">
+                    <div class="fund-item">
+                        <div class="fund-name">Nippon Large Cap <span class="trending-badge">+12.5%</span></div>
+                        <div class="fund-details">
+                            <span class="fund-category">Large Cap</span>
+                            <span class="fund-nav">₹52.30</span>
+                        </div>
+                    </div>
+                    <div class="fund-item">
+                        <div class="fund-name">Nippon Flexi Cap <span class="trending-badge">+10.2%</span></div>
+                        <div class="fund-details">
+                            <span class="fund-category">Flexi Cap</span>
+                            <span class="fund-nav">₹65.20</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats (Small Card) -->
+            <div class="bento-card card-small">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="card-icon">📈</span>
+                        Quick Stats
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalFunds">0</div>
+                            <div class="stat-label">Total Funds</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="totalFaqs">0</div>
+                            <div class="stat-label">FAQs</div>
+                        </div>
+                    </div>
+                    <div class="rating-display">
+                        <span class="stars">★★★★★</span>
+                        <span class="rating-text" id="avgRating">No ratings yet</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fund Comparison (Small Card) -->
+            <div class="bento-card card-small">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="card-icon">⚖️</span>
+                        Compare
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="comparison-table" id="comparisonTable">
+                        <div class="comparison-row">
+                            <span class="comparison-label">Expense Ratio</span>
+                            <span class="comparison-value">0.75% - 2.10%</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="comparison-label">Min Investment</span>
+                            <span class="comparison-value">₹500 - ₹5,000</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="comparison-label">Exit Load</span>
+                            <span class="comparison-value">0% - 1%</span>
+                        </div>
+                        <div class="comparison-row">
+                            <span class="comparison-label">Lock-in</span>
+                            <span class="comparison-value">0 - 3 years</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Insights & Disclaimer (Small Card) -->
+            <div class="bento-card card-small">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="card-icon">💡</span>
+                        Insights
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="insight-item">
+                        <div class="fund-name">Market Outlook</div>
+                        <div class="fund-details" style="display: block; margin-top: 6px;">
+                            Indian equity markets showing strong momentum with large-cap funds performing well.
+                        </div>
+                    </div>
+                    <div class="disclaimer">
+                        <span class="disclaimer-icon">⚠️</span>
+                        <strong>Disclaimer:</strong> Mutual fund investments are subject to market risks. Past performance is not indicative of future returns. Please read all scheme-related documents carefully before investing. Consult a financial advisor for personalized advice.
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -600,7 +890,7 @@
     <div class="modal" id="ratingModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>⭐ Rate this Conversation</h3>
+                <h3>⭐ Rate Your Experience</h3>
                 <button class="modal-close" onclick="closeModal('ratingModal')">&times;</button>
             </div>
             <div class="modal-body">
@@ -611,7 +901,8 @@
                     <button class="star-btn" onclick="setRating(4)">★</button>
                     <button class="star-btn" onclick="setRating(5)">★</button>
                 </div>
-                <textarea class="rating-feedback" id="ratingFeedback" placeholder="Any feedback? (optional)"></textarea>
+                <p style="text-align: center; color: #6b8075; margin-bottom: 20px;">How was your experience?</p>
+                <textarea class="rating-feedback" id="ratingFeedback" placeholder="Share your feedback (optional)"></textarea>
                 <button class="rating-submit" onclick="submitRating()">Submit Rating</button>
             </div>
         </div>
@@ -628,7 +919,8 @@
 
         // Initialize
         checkStatus();
-        loadHistory();
+        loadFunds();
+        loadRatings();
         userInput.focus();
 
         // Check API status
@@ -636,12 +928,50 @@
             try {
                 const response = await fetch('/api/status');
                 const data = await response.json();
-                document.getElementById('statusDot').className = 'status-dot ' + (data.status === 'ok' ? 'online' : 'offline');
-                document.getElementById('statusText').textContent = data.status === 'ok' ? 'Online' : 'Error';
-                document.getElementById('kbStatus').textContent = `${data.knowledge_base.total} records`;
+                document.getElementById('statusText').textContent = data.status === 'ok' ? 'Connected' : 'Error';
+                document.getElementById('kbStatus').textContent = `${data.knowledge_base.total} records loaded`;
+                document.getElementById('totalFunds').textContent = data.knowledge_base.schemes;
+                document.getElementById('totalFaqs').textContent = data.knowledge_base.faqs;
             } catch (error) {
-                document.getElementById('statusDot').className = 'status-dot offline';
                 document.getElementById('statusText').textContent = 'Offline';
+            }
+        }
+
+        // Load funds into explorer
+        async function loadFunds() {
+            try {
+                const response = await fetch('/api/funds');
+                const data = await response.json();
+                document.getElementById('fundsCount').textContent = data.total;
+
+                const explorer = document.getElementById('fundExplorer');
+                if (data.funds.length > 0) {
+                    explorer.innerHTML = data.funds.slice(0, 6).map(f => `
+                        <div class="fund-item">
+                            <div class="fund-name">${f.name}</div>
+                            <div class="fund-details">
+                                <span class="fund-category">${f.category}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    explorer.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No funds available</p></div>';
+                }
+            } catch (error) {
+                console.error('Error loading funds:', error);
+            }
+        }
+
+        // Load ratings
+        async function loadRatings() {
+            try {
+                const response = await fetch('/api/ratings');
+                const data = await response.json();
+                if (data.total > 0) {
+                    document.getElementById('avgRating').textContent = `${data.average}/5 (${data.total} ratings)`;
+                }
+            } catch (error) {
+                console.error('Error loading ratings:', error);
             }
         }
 
@@ -715,113 +1045,6 @@
             userInput.focus();
         }
 
-        // Clear chat
-        function clearChat() {
-            chatMessages.innerHTML = `
-                <div class="message bot">
-                    <div class="message-content">Chat cleared. How can I help you?</div>
-                </div>
-            `;
-            currentMessages = [];
-            currentSessionId = null;
-        }
-
-        // New chat
-        function newChat() {
-            if (currentMessages.length > 1) {
-                saveChat();
-            }
-            clearChat();
-        }
-
-        // Save chat
-        async function saveChat() {
-            if (currentMessages.length < 2) return;
-
-            const title = currentMessages[0]?.content?.substring(0, 30) + '...' || 'New Chat';
-
-            try {
-                const response = await fetch('/api/history', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ title, messages: currentMessages, rating: currentRating })
-                });
-                const data = await response.json();
-                currentSessionId = data.session_id;
-                loadHistory();
-                alert('Chat saved!');
-            } catch (error) {
-                alert('Error saving chat');
-            }
-        }
-
-        // Load history
-        async function loadHistory() {
-            try {
-                const response = await fetch('/api/history');
-                const data = await response.json();
-                const list = document.getElementById('historyList');
-
-                if (data.history.length === 0) {
-                    list.innerHTML = '<p style="color: #666; font-size: 0.85rem; padding: 10px;">No chat history yet</p>';
-                    return;
-                }
-
-                list.innerHTML = data.history.map(session => `
-                    <div class="history-item" onclick="loadSession('${session.id}')">
-                        <div>
-                            <div class="history-title">${session.title}</div>
-                            <div class="history-time">${new Date(session.timestamp).toLocaleDateString()}</div>
-                        </div>
-                        <button class="history-delete" onclick="event.stopPropagation(); deleteSession('${session.id}')">×</button>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Error loading history:', error);
-            }
-        }
-
-        // Load session
-        async function loadSession(sessionId) {
-            try {
-                const response = await fetch('/api/history');
-                const data = await response.json();
-                const session = data.history.find(s => s.id === sessionId);
-
-                if (session) {
-                    chatMessages.innerHTML = '';
-                    session.messages.forEach(msg => {
-                        addMessage(msg.content, msg.role === 'user');
-                    });
-                    currentMessages = session.messages;
-                    currentSessionId = sessionId;
-                }
-            } catch (error) {
-                console.error('Error loading session:', error);
-            }
-        }
-
-        // Delete session
-        async function deleteSession(sessionId) {
-            try {
-                await fetch(`/api/history/${sessionId}`, { method: 'DELETE' });
-                loadHistory();
-            } catch (error) {
-                console.error('Error deleting session:', error);
-            }
-        }
-
-        // Clear all history
-        async function clearAllHistory() {
-            if (!confirm('Clear all chat history?')) return;
-            try {
-                await fetch('/api/history/clear', { method: 'POST' });
-                loadHistory();
-            } catch (error) {
-                console.error('Error clearing history:', error);
-            }
-        }
-
         // Show funds modal
         async function showFundsModal() {
             document.getElementById('fundsModal').classList.add('active');
@@ -832,12 +1055,14 @@
                     ? data.funds.map(f => `
                         <div class="fund-item">
                             <div class="fund-name">${f.name}</div>
-                            <div class="fund-category">${f.category}</div>
+                            <div class="fund-details">
+                                <span class="fund-category">${f.category}</span>
+                            </div>
                         </div>
                     `).join('')
-                    : '<p>No funds loaded</p>';
+                    : '<div class="empty-state"><div class="empty-icon">📊</div><p>No funds loaded</p></div>';
             } catch (error) {
-                document.getElementById('fundsList').innerHTML = '<p>Error loading funds</p>';
+                document.getElementById('fundsList').innerHTML = '<p style="color: #f87171;">Error loading funds</p>';
             }
         }
 
@@ -852,12 +1077,12 @@
                         <div class="faq-item" onclick="this.classList.toggle('expanded')">
                             <div class="faq-question">${faq.question}</div>
                             <div class="faq-answer">${faq.answer}</div>
-                            <span class="faq-category">${faq.category}</span>
+                            <span class="trending-badge" style="margin-top: 8px;">${faq.category}</span>
                         </div>
                     `).join('')
-                    : '<p>No FAQs loaded</p>';
+                    : '<div class="empty-state"><div class="empty-icon">❓</div><p>No FAQs loaded</p></div>';
             } catch (error) {
-                document.getElementById('faqsList').innerHTML = '<p>Error loading FAQs</p>';
+                document.getElementById('faqsList').innerHTML = '<p style="color: #f87171;">Error loading FAQs</p>';
             }
         }
 
@@ -866,6 +1091,7 @@
             document.getElementById('ratingModal').classList.add('active');
             currentRating = 0;
             document.querySelectorAll('.star-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('ratingFeedback').value = '';
         }
 
         function setRating(rating) {
@@ -893,6 +1119,7 @@
                 });
                 closeModal('ratingModal');
                 alert('Thank you for your feedback!');
+                loadRatings();
             } catch (error) {
                 alert('Error submitting rating');
             }
@@ -903,8 +1130,14 @@
             document.getElementById(id).classList.remove('active');
         }
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
+        function showView(view) {
+            // Future: Switch between different views
+            console.log('Switching to view:', view);
+        }
+
+        function toggleTheme() {
+            // Future: Theme toggle functionality
+            alert('Theme toggle coming soon!');
         }
 
         // Close modals on outside click
@@ -914,7 +1147,7 @@
             });
         });
 
-        // Refresh status
+        // Refresh status every 30 seconds
         setInterval(checkStatus, 30000);
     </script>
 </body>
